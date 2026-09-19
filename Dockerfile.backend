@@ -27,7 +27,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     httpx \
     python-multipart \
     pillow \
-    reportlab
+    reportlab \
+    pypdf
 
 # Copy workspace code
 COPY backend/ /app/backend/
