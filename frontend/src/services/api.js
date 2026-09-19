@@ -52,3 +52,20 @@ export async function fetchTrace(sessionId) {
   if (!res.ok) throw new Error(`Failed to fetch trace: ${res.statusText}`);
   return res.json();
 }
+
+export async function getPresets() {
+  const res = await fetch(`${API_BASE}/presets`);
+  if (!res.ok) throw new Error(`Failed to fetch presets: ${res.statusText}`);
+  return res.json();
+}
+
+export async function loadPreset(presetId) {
+  const res = await fetch(`${API_BASE}/presets/load/${presetId}`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to load preset');
+  }
+  return res.json();
+}

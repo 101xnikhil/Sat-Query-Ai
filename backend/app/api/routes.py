@@ -37,6 +37,124 @@ def health_check():
         "storage_writable": storage_ok
     }
 
+@router.get("/presets")
+def list_presets():
+    return {
+        "presets": [
+            {
+                "id": "single_vqa",
+                "title": "Single-Image VQA",
+                "subtitle": "Cartosat-2S High-Res Optical",
+                "query": "What is the dominant terrain and are there water bodies in this scene?",
+                "mode": "single",
+                "description": "Token-calibrated vision-language scene question answering"
+            },
+            {
+                "id": "grounding",
+                "title": "Geospatial Grounding",
+                "subtitle": "Airfield Runway & Oil Tanks",
+                "query": "Locate the airfield runway and storage tanks.",
+                "mode": "single",
+                "description": "Referring expression spatial grounding reprojected to EPSG:4326 GeoJSON"
+            },
+            {
+                "id": "change",
+                "title": "Bi-Temporal Change",
+                "subtitle": "Multitemporal Urban Dynamics (T1 vs T2)",
+                "query": "Has built-up area increased, decreased, or remained unchanged between the two dates?",
+                "mode": "bitemporal",
+                "description": "Radiometric Change Vector Analysis with connected-component filtering"
+            },
+            {
+                "id": "fusion",
+                "title": "Optical + SAR Cross-Modal",
+                "subtitle": "Co-registered Sentinel-1 SAR & Sentinel-2 Optical",
+                "query": "Fuse optical and SAR imagery to delineate surface water bodies and built-up areas.",
+                "mode": "optical_sar",
+                "description": "Two-stream fusion with Lee speckle filtering & continuous sigmoid blending"
+            },
+            {
+                "id": "multistep",
+                "title": "Agentic Multi-Step Orchestration",
+                "subtitle": "Compound Multimodal Reasoning",
+                "query": "what changed and is the new area water or built-up?",
+                "mode": "optical_sar",
+                "description": "Ordered DAG: change_map -> optical_sar_fusion -> change_vqa"
+            }
+        ]
+    }
+
+@router.post("/presets/load/{preset_id}")
+def load_preset(preset_id: str):
+    from scripts.setup_demo_data import create_demo_assets
+    demo_dir = Path("data/demo_assets")
+    if not demo_dir.exists() or not any(demo_dir.glob("*.tif")):
+        create_demo_assets(str(demo_dir))
+
+    preset_map = {
+        "single_vqa": {
+            "files": ["demo_single_optical.tif"],
+            "mode": "single",
+            "query": "What is the dominant terrain and are there water bodies in this scene?",
+            "dates": [None]
+        },
+        "grounding": {
+            "files": ["demo_single_optical.tif"],
+            "mode": "single",
+            "query": "Locate the airfield runway and storage tanks.",
+            "dates": [None]
+        },
+        "change": {
+            "files": ["demo_temporal_t1.tif", "demo_temporal_t2.tif"],
+            "mode": "bitemporal",
+            "query": "Has built-up area increased, decreased, or remained unchanged between the two dates?",
+            "dates": ["2023-01-15T00:00:00Z", "2024-01-15T00:00:00Z"]
+        },
+        "fusion": {
+            "files": ["demo_crossmodal_optical.tif", "demo_crossmodal_sar.tif"],
+            "mode": "optical_sar",
+            "query": "Fuse optical and SAR imagery to delineate surface water bodies and built-up areas.",
+            "dates": [None, None]
+        },
+        "multistep": {
+            "files": ["demo_crossmodal_optical.tif", "demo_crossmodal_sar.tif"],
+            "mode": "optical_sar",
+            "query": "what changed and is the new area water or built-up?",
+            "dates": [None, None]
+        }
+    }
+
+    if preset_id not in preset_map:
+        raise HTTPException(status_code=404, detail=f"Preset '{preset_id}' not found.")
+
+    preset_info = preset_map[preset_id]
+    storage_dir = Path(settings.app.storage_dir)
+    storage_dir.mkdir(parents=True, exist_ok=True)
+
+    loaded_metas = []
+    for idx, fname in enumerate(preset_info["files"]):
+        src_path = demo_dir / fname
+        if not src_path.exists():
+            create_demo_assets(str(demo_dir))
+        
+        target_path = storage_dir / f"{preset_id}_{fname}"
+        shutil.copyfile(src_path, target_path)
+
+        acq_date = preset_info["dates"][idx] if idx < len(preset_info["dates"]) else None
+        meta = read_image_metadata(
+            file_path=str(target_path),
+            image_id=f"{preset_id}_{fname.split('.')[0]}",
+            acquisition_date=acq_date
+        )
+        loaded_metas.append(meta)
+
+    return {
+        "images": [m.model_dump() for m in loaded_metas],
+        "mode": preset_info["mode"],
+        "default_query": preset_info["query"],
+        "message": f"Successfully loaded preset '{preset_id}' with {len(loaded_metas)} image(s)."
+    }
+
 @router.post("/upload", response_model=UploadResponse)
 async def upload_images(
     files: List[UploadFile] = File(...),
