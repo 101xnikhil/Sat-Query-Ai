@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
-import { Terminal, CheckCircle2, AlertTriangle, Clock, ChevronDown, ChevronUp, Code } from 'lucide-react';
+import { Terminal, CheckCircle2, AlertTriangle, Clock, ChevronDown, ChevronUp, Code, Cpu, ShieldCheck } from 'lucide-react';
 
 export default function TraceViewer({ trace }) {
   const [isOpen, setIsOpen] = useState(true);
   const [showRawJson, setShowRawJson] = useState(false);
+  const [expandedTools, setExpandedTools] = useState({});
 
   if (!trace) return null;
 
   const val = trace.input_validation || {};
   const tools = trace.tool_calls || [];
+  const latencies = trace.stage_latencies || {};
+
+  const toggleToolExpand = (idx) => {
+    setExpandedTools(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
 
   return (
     <div className="trace-card">
@@ -52,6 +61,49 @@ export default function TraceViewer({ trace }) {
             </pre>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Controller Status & Fallback Indicator */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                background: trace.fallback_used ? 'rgba(245, 158, 11, 0.12)' : 'rgba(0, 229, 255, 0.08)',
+                border: `1px solid ${trace.fallback_used ? '#f59e0b' : 'rgba(0, 229, 255, 0.3)'}`,
+                fontSize: '0.72rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {trace.fallback_used ? <AlertTriangle size={13} color="#f59e0b" /> : <Cpu size={13} color="var(--accent-cyan)" />}
+                  <span style={{ fontWeight: 600, color: trace.fallback_used ? '#f59e0b' : 'var(--accent-cyan)' }}>
+                    {trace.fallback_used ? 'Controller Fallback: RuleBasedRouter Activated' : 'Controller: Instruction LLM Structured Plan'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--accent-emerald)' }}>
+                  <ShieldCheck size={13} />
+                  <span>Whitelist Enforced</span>
+                </div>
+              </div>
+
+              {/* Stage Latencies Bar */}
+              {Object.keys(latencies).length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                  fontSize: '0.68rem',
+                  color: 'var(--text-muted)',
+                  background: 'rgba(255,255,255,0.02)',
+                  padding: '5px 8px',
+                  borderRadius: '5px'
+                }}>
+                  {latencies.ingestion_ms !== undefined && <span>Ingest: <strong>{latencies.ingestion_ms}ms</strong></span>}
+                  {latencies.validation_ms !== undefined && <span>Valid: <strong>{latencies.validation_ms}ms</strong></span>}
+                  {latencies.planning_ms !== undefined && <span>Plan: <strong>{latencies.planning_ms}ms</strong></span>}
+                  {latencies.tool_execution_ms !== undefined && <span>Tools: <strong>{latencies.tool_execution_ms}ms</strong></span>}
+                  {latencies.synthesis_ms !== undefined && <span>Synth: <strong>{latencies.synthesis_ms}ms</strong></span>}
+                </div>
+              )}
+
               {/* Validation Step */}
               <div style={{ borderLeft: '2px solid #10b981', paddingLeft: 8 }}>
                 <div style={{ fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -69,45 +121,63 @@ export default function TraceViewer({ trace }) {
                 </div>
               </div>
 
-              {/* Tool Execution Sequence */}
+              {/* Tool Execution Sequence (Collapsible) */}
               <div>
                 <div style={{ fontWeight: 600, color: '#94a3b8', marginBottom: 4, fontSize: '0.7rem', textTransform: 'uppercase' }}>
                   Ordered Tool Calls ({tools.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {tools.map((t, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        padding: '6px 8px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>
-                          {idx + 1}. {t.tool_name}
-                        </span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: 3 }}>
-                          <Clock size={11} /> {t.duration_ms}ms
-                        </span>
-                      </div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginTop: 2 }}>
-                        Whitelisted Params: {JSON.stringify(t.parameters)}
-                      </div>
-                      {t.output_summary?.rendering_applied && (
-                        <div style={{ color: '#38bdf8', fontSize: '0.68rem', marginTop: 3 }}>
-                          <strong>Rendering:</strong> {t.output_summary.rendering_applied}
+                  {tools.map((t, idx) => {
+                    const isExpanded = !!expandedTools[idx];
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                        }}
+                      >
+                        <div
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                          onClick={() => toggleToolExpand(idx)}
+                        >
+                          <span style={{ color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {idx + 1}. {t.tool_name}
+                            {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Clock size={11} /> {t.duration_ms}ms
+                          </span>
                         </div>
-                      )}
-                      {t.output_summary?.tiles_used && t.output_summary.tiles_used.length > 0 && (
-                        <div style={{ color: '#a78bfa', fontSize: '0.68rem', marginTop: 2 }}>
-                          <strong>Tiling:</strong> {t.output_summary.tiles_used.length} tile(s) evaluated with overlap
-                        </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* Collapsible Details */}
+                        {isExpanded ? (
+                          <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>
+                              <strong>Whitelisted Parameters:</strong>
+                              <pre style={{ margin: '2px 0', fontSize: '0.66rem', color: '#cbd5e1' }}>
+                                {JSON.stringify(t.parameters, null, 2)}
+                              </pre>
+                            </div>
+                            {t.output_summary && Object.keys(t.output_summary).length > 0 && (
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginTop: 4 }}>
+                                <strong>Output Summary:</strong>
+                                <pre style={{ margin: '2px 0', fontSize: '0.66rem', color: '#38bdf8' }}>
+                                  {JSON.stringify(t.output_summary, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            Params: {JSON.stringify(t.parameters)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

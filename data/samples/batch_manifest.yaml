@@ -1,0 +1,31 @@
+# SatQuery AI - Sample Batch Evaluation Manifest
+# Usage: python -m satquery batch --manifest data/samples/batch_manifest.yaml --output-dir data/outputs/batch_eval
+
+cases:
+  - id: case_01_single_vqa
+    query: "What is the dominant terrain and are there water bodies in this scene?"
+    images:
+      - data/demo_assets/demo_single_optical.tif
+
+  - id: case_02_grounding
+    query: "Locate the airfield runway and storage tanks."
+    images:
+      - data/demo_assets/demo_single_optical.tif
+
+  - id: case_03_change_understanding
+    query: "Has built-up area increased, decreased, or remained unchanged between the two dates?"
+    images:
+      - data/demo_assets/demo_temporal_t1.tif
+      - data/demo_assets/demo_temporal_t2.tif
+
+  - id: case_04_optical_sar_fusion
+    query: "Fuse optical and SAR imagery to delineate surface water bodies and built-up areas."
+    images:
+      - data/demo_assets/demo_crossmodal_optical.tif
+      - data/demo_assets/demo_crossmodal_sar.tif
+
+  - id: case_05_multistep_orchestration
+    query: "what changed and is the new area water or built-up?"
+    images:
+      - data/demo_assets/demo_crossmodal_optical.tif
+      - data/demo_assets/demo_crossmodal_sar.tif

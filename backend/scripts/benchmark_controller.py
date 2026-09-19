@@ -1,8 +1,11 @@
 import os
+import sys
 import json
 import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from backend.app.schemas.common import Modality, TaskType, ImageMetadata
 from backend.app.controller.llm_planner import LLMPlanner
