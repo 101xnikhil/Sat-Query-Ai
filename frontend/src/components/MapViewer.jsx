@@ -150,10 +150,12 @@ export default function MapViewer({ uploadedImages, layers, onLayerToggle }) {
               new maplibregl.Popup()
                 .setLngLat(e.lngLat)
                 .setHTML(`
-                  <div style="color: #0f172a; font-family: sans-serif; font-size: 12px;">
+                  <div style="color: #0f172a; font-family: sans-serif; font-size: 12px; line-height: 1.4;">
                     <strong>${props.label || props.class || 'Detection'}</strong><br/>
                     ${props.confidence ? `Confidence: ${(props.confidence * 100).toFixed(1)}%<br/>` : ''}
-                    ${props.area_km2 ? `Area: ${props.area_km2} km²` : ''}
+                    ${props.area_m2 ? `Ground Area: ${Number(props.area_m2).toLocaleString()} m²<br/>` : ''}
+                    ${props.area_km2 ? `Ground Area: ${props.area_km2} km²<br/>` : ''}
+                    ${props.area_pixels ? `Pixel Area: ${props.area_pixels} px²` : ''}
                   </div>
                 `)
                 .addTo(map.current);
@@ -191,9 +193,85 @@ export default function MapViewer({ uploadedImages, layers, onLayerToggle }) {
     URL.revokeObjectURL(url);
   };
 
+  const [activeDateView, setActiveDateView] = useState('both'); // 't1', 't2', 'both'
+
   return (
     <div className="map-canvas-container">
       <div ref={mapContainer} className="maplibre-viewport" />
+
+      {/* Bi-Temporal Date Comparison Toolbar */}
+      {uploadedImages.length >= 2 && (
+        <div style={{
+          position: 'absolute',
+          top: 14,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          display: 'flex',
+          gap: 6,
+          background: 'rgba(15, 23, 42, 0.88)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 24,
+          padding: '4px 6px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+        }}>
+          <button
+            onClick={() => setActiveDateView('t1')}
+            style={{
+              background: activeDateView === 't1' ? 'rgba(0, 229, 255, 0.2)' : 'transparent',
+              border: activeDateView === 't1' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
+              color: activeDateView === 't1' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              borderRadius: 18,
+              padding: '5px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
+            <span>T1 ({uploadedImages[0]?.acquisition_date ? uploadedImages[0].acquisition_date.slice(0, 10) : 'Pre'})</span>
+          </button>
+          <button
+            onClick={() => setActiveDateView('t2')}
+            style={{
+              background: activeDateView === 't2' ? 'rgba(0, 229, 255, 0.2)' : 'transparent',
+              border: activeDateView === 't2' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
+              color: activeDateView === 't2' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              borderRadius: 18,
+              padding: '5px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
+            <span>T2 ({uploadedImages[1]?.acquisition_date ? uploadedImages[1].acquisition_date.slice(0, 10) : 'Post'})</span>
+          </button>
+          <button
+            onClick={() => setActiveDateView('both')}
+            style={{
+              background: activeDateView === 'both' ? 'rgba(244, 63, 94, 0.2)' : 'transparent',
+              border: activeDateView === 'both' ? '1px solid #f43f5e' : '1px solid transparent',
+              color: activeDateView === 'both' ? '#f43f5e' : 'var(--text-secondary)',
+              borderRadius: 18,
+              padding: '5px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
+            <span>Δ Change Footprint</span>
+          </button>
+        </div>
+      )}
 
       {/* Toggleable Layers Control */}
       {layers.length > 0 && (

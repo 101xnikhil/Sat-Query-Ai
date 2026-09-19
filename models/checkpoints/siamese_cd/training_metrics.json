@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "steps_completed": 3,
+  "final_loss": 0.3916,
+  "loss_history": [
+    0.5451,
+    0.4547,
+    0.3916
+  ],
+  "checkpoint_path": "models/checkpoints/siamese_cd/siamese_cd.pt"
+}

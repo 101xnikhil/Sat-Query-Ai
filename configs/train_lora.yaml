@@ -1,0 +1,37 @@
+# LoRA Fine-Tuning Configuration (Phase 2)
+model:
+  base_model: "Qwen/Qwen2-VL-2B-Instruct"
+  device: "cuda" # Set to cpu for smoke-test
+  use_qlora: false
+
+training:
+  output_dir: "models/checkpoints/vqa_lora"
+  epochs: 3
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  logging_steps: 10
+  save_steps: 100
+  seed: 42
+
+peft:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  bias: "none"
+  target_modules: ["q_proj", "v_proj"]
+
+datasets:
+  sampling_strategy: "weighted_mixture"
+  mixture:
+    - name: "rsvqa"
+      path: "data/datasets/sample_rsvqa.json"
+      weight: 0.35
+    - name: "vrsbench"
+      path: "data/datasets/sample_vrsbench.json"
+      weight: 0.35
+    - name: "bigearthnet_txt"
+      path: "data/datasets/sample_bigearthnet.txt"
+      weight: 0.30

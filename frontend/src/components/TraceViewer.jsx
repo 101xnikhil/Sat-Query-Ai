@@ -96,6 +96,16 @@ export default function TraceViewer({ trace }) {
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.68rem', marginTop: 2 }}>
                         Whitelisted Params: {JSON.stringify(t.parameters)}
                       </div>
+                      {t.output_summary?.rendering_applied && (
+                        <div style={{ color: '#38bdf8', fontSize: '0.68rem', marginTop: 3 }}>
+                          <strong>Rendering:</strong> {t.output_summary.rendering_applied}
+                        </div>
+                      )}
+                      {t.output_summary?.tiles_used && t.output_summary.tiles_used.length > 0 && (
+                        <div style={{ color: '#a78bfa', fontSize: '0.68rem', marginTop: 2 }}>
+                          <strong>Tiling:</strong> {t.output_summary.tiles_used.length} tile(s) evaluated with overlap
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -53,5 +53,5 @@ def test_router_change_vqa():
     task = router.classify_task("What changed in the forest canopy between 2021 and 2023?", images)
     assert task == TaskType.CHANGE_VQA
     plan = router.plan_tools(task, "What changed in the forest canopy?", images)
-    assert plan[0][0] == "change_vqa"
-    assert plan[1][0] == "change_map"
+    assert plan[0][0] == "change_map"
+    assert plan[1][0] == "change_vqa"

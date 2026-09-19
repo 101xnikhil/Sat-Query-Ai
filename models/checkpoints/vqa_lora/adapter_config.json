@@ -1,19 +1,14 @@
 {
-  "base_model_name": "Qwen/Qwen2-VL-7B-Instruct",
+  "base_model_name_or_path": "Qwen/Qwen2-VL-2B-Instruct",
   "peft_type": "LORA",
   "r": 16,
   "lora_alpha": 32,
+  "lora_dropout": 0.05,
   "target_modules": [
     "q_proj",
-    "k_proj",
-    "v_proj",
-    "o_proj",
-    "gate_proj",
-    "up_proj",
-    "down_proj"
+    "v_proj"
   ],
-  "dataset": "bigearthnet",
-  "samples_trained": 3,
-  "epochs": 3,
-  "final_loss": 0.385
+  "training_steps": 3,
+  "final_loss": 1.936,
+  "device": "cpu"
 }

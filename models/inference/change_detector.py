@@ -39,16 +39,17 @@ def compute_radiometric_change(
     t1_slice = arr1[:min_bands, :min_h, :min_w]
     t2_slice = arr2[:min_bands, :min_h, :min_w]
 
-    # 1. Multi-band Euclidean Change Vector Magnitude
-    diff = t2_slice - t1_slice
-    magnitude = np.sqrt(np.sum(diff ** 2, axis=0))
-
-    # Normalize magnitude
-    max_mag = np.max(magnitude) if np.max(magnitude) > 0 else 1.0
-    norm_mag = magnitude / max_mag
-
-    # Binary change mask from threshold
-    raw_mask = (norm_mag > threshold).astype(np.uint8)
+    # 1. Pixel-level Change Detection using SiameseChangeDetector or RCVA
+    try:
+        from models.inference.siamese_cd import SiameseChangeDetector
+        detector = SiameseChangeDetector()
+        raw_mask, prob_map = detector.detect_change(t1_slice, t2_slice, threshold=threshold)
+    except Exception:
+        diff = t2_slice - t1_slice
+        magnitude = np.sqrt(np.sum(diff ** 2, axis=0))
+        max_mag = np.max(magnitude) if np.max(magnitude) > 0 else 1.0
+        norm_mag = magnitude / max_mag
+        raw_mask = (norm_mag > threshold).astype(np.uint8)
 
     # 2. Ground resolution in meters
     res_m = 10.0
@@ -73,11 +74,19 @@ def compute_radiometric_change(
     total_pixels = float(min_h * min_w)
     changed_pixels = int(np.sum(clean_mask))
     percentage_changed = round((changed_pixels / total_pixels) * 100.0, 2)
-    area_changed_m2 = changed_pixels * pixel_area_m2
-    area_changed_km2 = round(area_changed_m2 / 1_000_000.0, 4)
+    area_changed_m2 = round(float(changed_pixels * pixel_area_m2), 2)
+    area_changed_ha = round(float(area_changed_m2 / 10_000.0), 4)
+    area_changed_km2 = round(float(area_changed_m2 / 1_000_000.0), 4)
 
-    # 4. Classify Direction of Change using Spectral Indices
+    # 4. Classify Direction of Change and Per-Class Area Deltas
     direction = "no significant change"
+    per_class_change = {
+        "vegetation": 0.0,
+        "built_up": 0.0,
+        "water": 0.0,
+        "barren_soil": 0.0
+    }
+
     if changed_pixels > 0:
         mask_bool = clean_mask == 1
         eps = 1e-6
@@ -95,6 +104,17 @@ def compute_radiometric_change(
             ndwi2 = (green2 - nir2) / (green2 + nir2 + eps)
             delta_ndwi = float(np.mean(ndwi2[mask_bool] - ndwi1[mask_bool]))
 
+            veg_changed = mask_bool & (np.abs(ndvi2 - ndvi1) > 0.10)
+            water_changed = mask_bool & (np.abs(ndwi2 - ndwi1) > 0.10)
+            intensity_diff = np.abs(np.mean(t2_slice, axis=0) - np.mean(t1_slice, axis=0))
+            built_changed = mask_bool & (~veg_changed) & (~water_changed) & (intensity_diff > 20.0)
+            soil_changed = mask_bool & (~veg_changed) & (~water_changed) & (~built_changed)
+
+            per_class_change["vegetation"] = round(float(np.sum(veg_changed) * pixel_area_m2), 2)
+            per_class_change["water"] = round(float(np.sum(water_changed) * pixel_area_m2), 2)
+            per_class_change["built_up"] = round(float(np.sum(built_changed) * pixel_area_m2), 2)
+            per_class_change["barren_soil"] = round(float(np.sum(soil_changed) * pixel_area_m2), 2)
+
             if delta_ndvi < -0.15:
                 direction = "vegetation loss / deforestation"
             elif delta_ndvi > 0.15:
@@ -109,6 +129,10 @@ def compute_radiometric_change(
         else:
             intensity_shift = np.mean(t2_slice[:, mask_bool]) - np.mean(t1_slice[:, mask_bool])
             direction = "construction / surface brightness increase" if intensity_shift > 0 else "vegetation decrease / darkening"
+            intensity_diff = np.abs(t2_slice[0] - t1_slice[0])
+            built_mask = mask_bool & (intensity_diff > 25.0)
+            per_class_change["built_up"] = round(float(np.sum(built_mask) * pixel_area_m2), 2)
+            per_class_change["barren_soil"] = round(float(np.sum(mask_bool & ~built_mask) * pixel_area_m2), 2)
 
     # 5. Export Georeferenced GeoTIFF Change Mask
     out_dir = Path(output_dir)
@@ -155,11 +179,15 @@ def compute_radiometric_change(
                                 new_coords.append(new_ring)
                             poly_geojson["coordinates"] = new_coords
 
+                        is_deg = mask_src.crs and "4326" in mask_src.crs.to_string()
+                        poly_area_m2 = (poly.area * 111320.0 * 111320.0) if is_deg else poly.area
                         feat = GeoJSONFeature(
                             type="Feature",
                             geometry=GeoJSONGeometry(type=poly_geojson["type"], coordinates=poly_geojson["coordinates"]),
                             properties={
                                 "id": f"change_{idx + 1}",
+                                "area_m2": round(poly_area_m2, 2),
+                                "area_ha": round(poly_area_m2 / 10000.0, 4),
                                 "area_changed_km2": area_changed_km2,
                                 "direction": direction
                             }
@@ -173,9 +201,11 @@ def compute_radiometric_change(
     return {
         "change_mask_path": mask_file_path,
         "area_changed_km2": area_changed_km2,
-        "area_changed_m2": round(area_changed_m2, 2),
+        "area_changed_ha": area_changed_ha,
+        "area_changed_m2": area_changed_m2,
         "percentage_changed": percentage_changed,
         "direction_of_change": direction,
+        "per_class_change": per_class_change,
         "changed_pixel_count": changed_pixels,
         "geojson": geojson
     }

@@ -22,14 +22,16 @@ export default function ChatPanel({
       "What is the primary terrain or land cover present?"
     ],
     optical_sar: [
+      "use the optical and SAR images together to identify built-up and water regions",
       "Identify built-up and water regions using both sensors",
-      "Segment surface water bodies and compute area",
+      "Segment surface water bodies and compute area in m² and ha",
       "Classify urban structures using SAR backscatter"
     ],
     bitemporal: [
-      "What changed between date T1 and date T2?",
-      "Generate a change map and calculate total area changed",
-      "Detect forest canopy loss and urban expansion"
+      "What changed between these two dates, and where?",
+      "Has built-up area increased, decreased, or remained unchanged?",
+      "Has vegetation canopy increased or decreased?",
+      "Calculate total area changed in m² and hectares"
     ]
   };
 
@@ -161,6 +163,48 @@ export default function ChatPanel({
               {queryResponse.answer}
             </div>
 
+            {/* Cross-Tool Agreement Indicator */}
+            {queryResponse.computed_metrics?.cross_tool_ndwi_agreement !== undefined && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 8,
+                padding: '6px 10px',
+                borderRadius: 6,
+                background: queryResponse.computed_metrics.cross_tool_ndwi_agreement >= 0.5
+                  ? 'rgba(0, 229, 255, 0.1)'
+                  : 'rgba(244, 63, 94, 0.15)',
+                border: `1px solid ${queryResponse.computed_metrics.cross_tool_ndwi_agreement >= 0.5 ? 'var(--accent-cyan)' : 'var(--accent-rose)'}`,
+                fontSize: '0.78rem'
+              }}>
+                <Sparkles size={14} color={queryResponse.computed_metrics.cross_tool_ndwi_agreement >= 0.5 ? 'var(--accent-cyan)' : 'var(--accent-rose)'} />
+                <span style={{ fontWeight: 600 }}>
+                  Cross-Tool NDWI Agreement: {(queryResponse.computed_metrics.cross_tool_ndwi_agreement * 100).toFixed(1)}%
+                  {queryResponse.computed_metrics.cross_tool_ndwi_agreement < 0.5 ? ' (Low Agreement Flagged)' : ' (High Spatial Concordance)'}
+                </span>
+              </div>
+            )}
+
+            {/* Degradation Mode Banner */}
+            {queryResponse.computed_metrics?.degradation_mode && queryResponse.computed_metrics.degradation_mode !== 'nominal' && (
+              <div style={{
+                marginTop: 6,
+                padding: '6px 10px',
+                borderRadius: 6,
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid #f59e0b',
+                fontSize: '0.75rem',
+                color: '#f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}>
+                <AlertCircle size={13} />
+                <span>Sensor Mode: {queryResponse.computed_metrics.degradation_mode}</span>
+              </div>
+            )}
+
             {/* Empirical Mask-Derived Metrics */}
             {queryResponse.computed_metrics && Object.keys(queryResponse.computed_metrics).length > 0 && (
               <div className="metrics-grid">
@@ -170,7 +214,11 @@ export default function ChatPanel({
                     <div key={key} className="metric-box">
                       <span className="metric-label">{key.replace(/_/g, ' ')}</span>
                       <span className="metric-value">
-                        {typeof val === 'number' ? val.toLocaleString() : String(val)}
+                        {typeof val === 'object' && val !== null
+                          ? Object.entries(val).map(([subK, subV]) => `${subK}: ${typeof subV === 'number' ? subV.toLocaleString() : subV}`).join(', ')
+                          : typeof val === 'number'
+                          ? val.toLocaleString()
+                          : String(val)}
                       </span>
                     </div>
                   ))}

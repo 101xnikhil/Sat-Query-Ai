@@ -44,8 +44,18 @@ class TraceLogger:
             actions_taken=[],
             tool_calls=[],
             ordered_tool_calls=[],
-            confidence=None  # Explicitly null for Phase 1
+            confidence=None,  # Explicitly null for Phase 1
+            fallback_used=False,
+            stage_latencies={}
         )
+        self.stage_latencies: Dict[str, float] = {}
+
+    def set_fallback_used(self, fallback_used: bool = True):
+        self.trace.fallback_used = fallback_used
+
+    def log_stage_latency(self, stage: str, duration_ms: float):
+        self.stage_latencies[stage] = round(duration_ms, 2)
+        self.trace.stage_latencies[stage] = round(duration_ms, 2)
 
     def log_validation(self, record: ValidationRecord):
         self.trace.input_validation = record
@@ -76,15 +86,18 @@ class TraceLogger:
         self,
         computed_metrics: Dict[str, Any],
         confidence_score: Optional[float] = None,
-        confidence_breakdown: Optional[Dict[str, float]] = None
+        confidence_breakdown: Optional[Dict[str, float]] = None,
+        fallback_used: Optional[bool] = None
     ) -> ExecutionTrace:
         total_duration = (time.time() - self.start_time) * 1000.0
         self.trace.total_duration_ms = round(total_duration, 2)
         self.trace.computed_metrics = computed_metrics
-        # For Phase 1, confidence is null unless explicitly provided
         self.trace.confidence = confidence_score
         self.trace.confidence_score = confidence_score if confidence_score is not None else 0.0
         self.trace.confidence_breakdown = confidence_breakdown or {}
+        if fallback_used is not None:
+            self.trace.fallback_used = fallback_used
+        self.trace.stage_latencies = dict(self.stage_latencies)
 
         # Save trace JSON to disk
         trace_file = self.output_dir / f"{self.run_id}_trace.json"

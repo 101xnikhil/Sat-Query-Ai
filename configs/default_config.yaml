@@ -24,6 +24,7 @@ models:
   base_vlm:
     name: "Qwen/Qwen2-VL-7B-Instruct"
     device: "cpu"
+    mock_mode: true
     lora_checkpoint_dir: "models/checkpoints/vqa_lora"
     max_tokens: 512
   datasets:
@@ -50,3 +51,13 @@ tools:
       allowed_params: ["optical_path", "sar_path", "target_classes", "confidence_threshold"]
     - name: "spectral_index"
       allowed_params: ["image_path", "index_type", "threshold"]
+
+controller:
+  backend: "local"
+  model_name: "Qwen/Qwen2.5-1.5B-Instruct"
+  api_base: "http://localhost:11434/v1"
+  api_key: ""
+  timeout_seconds: 3.0
+  temperature: 0.0
+  strict_whitelist: true
+

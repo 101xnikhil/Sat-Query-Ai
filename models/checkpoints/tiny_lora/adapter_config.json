@@ -1,0 +1,14 @@
+{
+  "base_model_name_or_path": "Qwen/Qwen2-VL-2B-Instruct",
+  "peft_type": "LORA",
+  "r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05,
+  "target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+  "training_steps": 3,
+  "final_loss": 1.9179,
+  "device": "cpu"
+}

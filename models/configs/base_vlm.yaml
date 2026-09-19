@@ -1,47 +1,24 @@
-# Base Vision-Language Model Configuration for SatQuery AI
+# Base Vision-Language Model Configuration (Phase 2 - GPU)
 model:
-  name: "Qwen/Qwen2-VL-7B-Instruct"
-  torch_dtype: "bfloat16"
-  device_map: "auto"
-  attn_implementation: "flash_attention_2"
-  max_image_pixels: 2048 * 2048
+  name: "Qwen/Qwen2-VL-2B-Instruct"
+  device: "cuda"
+  torch_dtype: "float16"
+  max_new_tokens: 256
+  temperature: 0.2
+  use_flash_attn: false
+  mock_mode: false
 
-peft_lora:
+training:
+  output_dir: "models/checkpoints/vqa_lora"
   r: 16
   lora_alpha: 32
   lora_dropout: 0.05
-  target_modules:
-    - "q_proj"
-    - "k_proj"
-    - "v_proj"
-    - "o_proj"
-    - "gate_proj"
-    - "up_proj"
-    - "down_proj"
-  bias: "none"
-  task_type: "CAUSAL_LM"
+  target_modules: ["q_proj", "v_proj"]
 
-training:
-  batch_size: 2
-  gradient_accumulation_steps: 8
-  learning_rate: 2.0e-5
-  weight_decay: 0.01
-  warmup_ratio: 0.03
-  lr_scheduler_type: "cosine"
-  max_grad_norm: 1.0
-  num_train_epochs: 3
-  evaluation_strategy: "steps"
-  eval_steps: 100
-  save_steps: 200
-  logging_steps: 10
-  fp16: false
-  bf16: true
-  output_dir: "models/checkpoints/vqa_lora"
-
-datasets:
-  primary: "BigEarthNet.txt"
-  additional:
-    - "RSVQA"
-    - "VRSBench"
-    - "CDVQA"
-  splits_dir: "data/datasets"
+inference:
+  tiling:
+    tile_size: 512
+    overlap: 64
+  nms:
+    iou_threshold: 0.50
+    score_threshold: 0.30

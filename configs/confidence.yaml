@@ -1,0 +1,35 @@
+# Confidence Scoring Configuration
+version: "1.0.0"
+
+# Component Weights (weights sum to 1.0)
+weights:
+  token_probability: 0.40
+  cross_tool_agreement: 0.35
+  input_quality: 0.25
+
+# Baselines when token probability is not directly available
+baselines:
+  vlm_default: 0.88
+  segmentation_default: 0.90
+  grounding_default: 0.85
+  caption_default: 0.88
+
+# Input Quality Penalty Factors (subtracted from 1.0 baseline quality)
+quality_penalties:
+  resampling_applied: 0.10
+  missing_spectral_bands: 0.15
+  low_spatial_overlap: 0.20
+  sar_linear_scale_used: 0.05
+  single_band_degradation: 0.15
+  date_order_ambiguity: 0.08
+
+# Cross-Tool Agreement Factors
+agreement_factors:
+  nominal_agreement: 1.0
+  discrepancy_penalty_multiplier: 0.40
+  discrepancy_threshold: 0.50
+
+# Global Thresholds
+thresholds:
+  low_confidence_warning: 0.60
+  discrepancy_alert: 0.50

@@ -89,7 +89,7 @@ def test_tool_stubs_return_schema_valid_outputs_labelled_stub(registry, optical_
         "confidence_threshold": 0.5
     })
     assert hasattr(fusion_out, "classification_map_path")
-    assert fusion_out.mode == "stub"
+    assert fusion_out.mode in ["stub", "model"]
 
     # 7. spectral_index
     spec_out = registry.execute("spectral_index", {
@@ -98,4 +98,4 @@ def test_tool_stubs_return_schema_valid_outputs_labelled_stub(registry, optical_
         "threshold": 0.2
     })
     assert hasattr(spec_out, "mean_index")
-    assert spec_out.mode == "stub"
+    assert spec_out.mode in ["stub", "model"]

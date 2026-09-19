@@ -1,0 +1,23 @@
+# Tiny CPU VLM Configuration (Phase 2 - Testing & CI)
+model:
+  name: "tiny-remote-sensing-vlm-cpu"
+  device: "cpu"
+  torch_dtype: "float32"
+  max_new_tokens: 64
+  temperature: 0.1
+  mock_mode: true
+
+training:
+  output_dir: "models/checkpoints/tiny_lora"
+  r: 4
+  lora_alpha: 8
+  lora_dropout: 0.0
+  target_modules: ["q_proj", "v_proj"]
+
+inference:
+  tiling:
+    tile_size: 128
+    overlap: 16
+  nms:
+    iou_threshold: 0.50
+    score_threshold: 0.25

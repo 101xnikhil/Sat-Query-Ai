@@ -87,9 +87,10 @@ class RuleBasedRouter:
                 )
 
         # Task assignment logic
-        # Dual Image: Optical + SAR Pair
-        if img_count == 2 and (Modality.SAR in modalities) and any(m in [Modality.OPTICAL, Modality.MULTISPECTRAL] for m in modalities):
-            return TaskType.OPTICAL_SAR_ANALYSIS
+        # Dual Image: Optical + SAR Pair or Cross-Modal query
+        if img_count == 2:
+            if (Modality.SAR in modalities) or any(k in q for k in self.FUSION_KEYWORDS) or (("water" in q or "reservoir" in q) and ("built" in q or "urban" in q)):
+                return TaskType.OPTICAL_SAR_ANALYSIS
 
         # Dual Image: Bi-temporal Pair
         if img_count == 2:
@@ -150,16 +151,16 @@ class RuleBasedRouter:
             }))
 
         elif task == TaskType.CHANGE_VQA:
-            plan.append(("change_vqa", {
-                "query": query,
-                "image_t1_path": images[0].file_path,
-                "image_t2_path": images[1].file_path
-            }))
             plan.append(("change_map", {
                 "image_t1_path": images[0].file_path,
                 "image_t2_path": images[1].file_path,
                 "threshold": 0.45,
                 "min_area_m2": 100.0
+            }))
+            plan.append(("change_vqa", {
+                "query": query,
+                "image_t1_path": images[0].file_path,
+                "image_t2_path": images[1].file_path
             }))
 
         elif task == TaskType.CHANGE_MAP:

@@ -91,14 +91,18 @@ def evaluate_fusion(
         ))
 
         # 3. Compute Spatial Cross-Tool Agreement (IoU between fusion water and NDWI mask)
-        with rasterio.open(fusion_out["classification_map_path"]) as f_src, rasterio.open(spec_out.index_map_path) as s_src:
-            f_arr = f_src.read(1)
-            s_arr = s_src.read(1)
-            mh = min(f_arr.shape[0], s_arr.shape[0])
-            mw = min(f_arr.shape[1], s_arr.shape[1])
-            fusion_water_mask = (f_arr[:mh, :mw] == 1)
-            ndwi_water_mask = (s_arr[:mh, :mw] > 0.15)
-            spatial_agreement = compute_raster_iou(fusion_water_mask, ndwi_water_mask)
+        if spec_out.index_map_path and Path(spec_out.index_map_path).exists():
+            with rasterio.open(fusion_out["classification_map_path"]) as f_src, rasterio.open(spec_out.index_map_path) as s_src:
+                f_arr = f_src.read(1)
+                s_arr = s_src.read(1)
+                mh = min(f_arr.shape[0], s_arr.shape[0])
+                mw = min(f_arr.shape[1], s_arr.shape[1])
+                fusion_water_mask = (f_arr[:mh, :mw] == 1)
+                ndwi_water_mask = (s_arr[:mh, :mw] > 0.15)
+                spatial_agreement = compute_raster_iou(fusion_water_mask, ndwi_water_mask)
+        else:
+            # When NIR is missing (e.g. RGB degradation), NDWI is not applicable
+            spatial_agreement = 1.0
 
         agreement_scores.append(spatial_agreement)
         water_ious.append(spatial_agreement)

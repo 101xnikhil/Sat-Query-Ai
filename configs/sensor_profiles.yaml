@@ -1,0 +1,64 @@
+# SatQuery AI - Sensor Normalization Profiles & Band Mappings
+# Configures band indices, physical unit conversions, and domain normalization.
+
+sensors:
+  sentinel2:
+    modality: "optical"
+    description: "ESA Sentinel-2 MSI (10m/20m multispectral)"
+    bands:
+      blue: 0      # B2 (490 nm)
+      green: 1     # B3 (560 nm)
+      red: 2       # B4 (665 nm)
+      nir: 3       # B8 (842 nm)
+      swir1: 4     # B11 (1610 nm)
+      swir2: 5     # B12 (2190 nm)
+    normalization:
+      type: "reflectance_scale"
+      scale_factor: 10000.0   # Standard S2 L2A BOA reflectance integer scaling
+      clip_min: 0.0
+      clip_max: 1.0
+
+  sentinel1:
+    modality: "sar"
+    description: "ESA Sentinel-1 C-band SAR (10m GRD dual-pol)"
+    polarizations:
+      vv: 0
+      vh: 1
+    normalization:
+      type: "db_scale"
+      is_linear_amplitude: true
+      min_db: -25.0
+      max_db: 5.0
+      mean_db: -12.0
+      std_db: 6.0
+
+  cartosat_2s:
+    modality: "optical"
+    description: "ISRO Cartosat-2S High-Resolution (0.6m Pan / 1.6m 4-band VNIR)"
+    bands:
+      blue: 0
+      green: 1
+      red: 2
+      nir: 3
+    panchromatic:
+      band: 0
+      resolution_m: 0.6
+    normalization:
+      type: "radiance_dn"
+      dn_max: 1023.0          # 10-bit or 11-bit sensor quantization
+      clip_min: 0.0
+      clip_max: 1.0
+
+  risat_1a:
+    modality: "sar"
+    description: "ISRO EOS-04 / RISAT-1A C-band SAR (High-resolution FRS / CP mode)"
+    polarizations:
+      c_pol: 0                # Circular/Hybrid or Co-pol (HH/VV)
+      x_pol: 1                # Cross-pol (HV/VH)
+    normalization:
+      type: "db_scale"
+      calibration_factor_db: -43.0  # Sensor-specific K_dB calibration constant
+      min_db: -30.0
+      max_db: 10.0
+      mean_db: -14.0
+      std_db: 7.0

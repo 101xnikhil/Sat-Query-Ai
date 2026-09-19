@@ -35,8 +35,12 @@ def lee_speckle_filter(img: np.ndarray, window_size: int = 3, damping: float = 1
     return filtered
 
 def convert_to_db(img: np.ndarray, epsilon: float = 1e-7) -> np.ndarray:
-    """Converts linear amplitude / intensity to decibels (dB)."""
-    linear = np.abs(img.astype(np.float32))
+    """Converts linear amplitude / intensity to decibels (dB). Preserves if already in dB."""
+    img_float = img.astype(np.float32)
+    # If values contain negative numbers, it is already in decibels (e.g. -25 to +5 dB)
+    if np.min(img_float) < 0.0 or (np.max(img_float) <= 30.0 and np.mean(img_float) < 5.0):
+        return img_float
+    linear = np.abs(img_float)
     db = 10.0 * np.log10(linear + epsilon)
     return db
 
@@ -58,13 +62,16 @@ def preprocess_sar_image(
         profile = src.profile.copy()
         data = src.read()  # (C, H, W)
         
+        # Check if already in dB
+        is_already_db = np.min(data) < 0.0 or (np.max(data) <= 30.0 and np.mean(data) < 5.0)
+
         processed_bands = []
         for b in range(data.shape[0]):
             band = data[b]
+            if not is_already_db and db_conversion:
+                band = convert_to_db(band, epsilon=epsilon)
             if apply_filter:
                 band = lee_speckle_filter(band, window_size=window_size)
-            if db_conversion:
-                band = convert_to_db(band, epsilon=epsilon)
             processed_bands.append(band)
 
         out_data = np.stack(processed_bands, axis=0).astype(np.float32)

@@ -19,5 +19,6 @@ class RSCaptionStubTool(BaseTool):
         return RSCaptionOutput(
             caption=caption,
             tags=tags,
-            confidence=0.91
+            confidence=0.91,
+            mode="stub"
         )

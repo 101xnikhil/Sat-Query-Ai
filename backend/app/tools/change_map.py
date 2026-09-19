@@ -25,8 +25,12 @@ class ChangeMapTool(BaseTool):
         )
         return ChangeMapOutput(
             change_mask_path=res["change_mask_path"],
+            area_changed_m2=res.get("area_changed_m2", 0.0),
+            area_changed_ha=res.get("area_changed_ha", 0.0),
             area_changed_km2=res["area_changed_km2"],
             percentage_changed=res["percentage_changed"],
             direction_of_change=res["direction_of_change"],
-            geojson=res["geojson"]
+            per_class_change=res.get("per_class_change"),
+            geojson=res["geojson"],
+            mode="model"
         )

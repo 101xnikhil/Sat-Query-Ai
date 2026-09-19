@@ -36,5 +36,6 @@ class RSVQAStubTool(BaseTool):
         return RSVQAOutput(
             answer=ans,
             confidence=conf,
-            evidence_summary=evidence
+            evidence_summary=evidence,
+            mode="stub"
         )

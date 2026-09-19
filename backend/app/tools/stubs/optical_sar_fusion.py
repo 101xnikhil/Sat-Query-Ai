@@ -100,11 +100,22 @@ class OpticalSARFusionStubTool(BaseTool):
             )
             features.extend([water_feat, built_feat])
 
+        water_area_m2 = round(water_pixels * pixel_area_m2, 2)
+        water_area_ha = round(water_area_m2 / 10_000.0, 4)
+        built_up_area_m2 = round(built_up_pixels * pixel_area_m2, 2)
+        built_up_area_ha = round(built_up_area_m2 / 10_000.0, 4)
+
         return OpticalSARFusionOutput(
             classification_map_path=out_map_path,
+            water_area_m2=water_area_m2,
+            water_area_ha=water_area_ha,
             water_area_km2=water_area_km2,
-            built_up_area_km2=built_up_area_km2,
             water_percentage=water_pct,
+            built_up_area_m2=built_up_area_m2,
+            built_up_area_ha=built_up_area_ha,
+            built_up_area_km2=built_up_area_km2,
             built_up_percentage=built_up_pct,
-            geojson=GeoJSONFeatureCollection(type="FeatureCollection", features=features) if features else None
+            geojson=GeoJSONFeatureCollection(type="FeatureCollection", features=features) if features else None,
+            ablation_mode=input_data.ablation_mode,
+            mode="stub"
         )

@@ -21,11 +21,12 @@ class RSGroundingTool(BaseTool):
         self.vlm = get_vlm_wrapper()
 
     def run(self, input_data: RSGroundingInput) -> RSGroundingOutput:
-        # 1. Detect candidate bounding boxes using VLM inference wrapper
-        boxes = self.vlm.ground_query(
+        # 1. Detect candidate bounding boxes using VLM inference wrapper with tiling & NMS
+        boxes, tiles_used, render_mode = self.vlm.ground_query(
             query=input_data.query,
             image_path=input_data.image_path,
-            box_threshold=input_data.box_threshold
+            box_threshold=input_data.box_threshold,
+            return_metadata=True
         )
 
         # 2. Project bounding boxes into georeferenced GeoJSON features
@@ -42,5 +43,7 @@ class RSGroundingTool(BaseTool):
             geojson=geojson,
             detected_count=len(boxes),
             labels=labels,
-            confidences=confidences
+            confidences=confidences,
+            tiles_used=tiles_used,
+            rendering_applied=render_mode
         )

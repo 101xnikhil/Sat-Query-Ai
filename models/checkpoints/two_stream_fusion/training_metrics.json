@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "steps_completed": 3,
+  "final_loss": 0.4506,
+  "loss_history": [
+    0.6142,
+    0.5328,
+    0.4506
+  ],
+  "checkpoint_path": "models/checkpoints/two_stream_fusion/two_stream_fusion.pt",
+  "augmentations_applied": [
+    "resolution_jitter",
+    "speckle_noise"
+  ]
+}

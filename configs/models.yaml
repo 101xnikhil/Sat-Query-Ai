@@ -11,4 +11,10 @@ models:
       - "RSVQA"
       - "VRSBench"
       - "CDVQA"
+      - "Sen1Floods11"
+      - "WHU-OPT-SAR"
+      - "SpaceNet6"
     splits_dir: "data/datasets"
+  optical_sar_fusion:
+    config_path: "configs/optical_sar_fusion.yaml"
+    sensor_profiles_path: "configs/sensor_profiles.yaml"

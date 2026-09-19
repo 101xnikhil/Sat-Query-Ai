@@ -28,5 +28,19 @@
       "bbox": [0.55, 0.10, 0.90, 0.45],
       "image_name": "delhi_optical.tif"
     }
+  ],
+  "vqa_questions": [
+    {
+      "id": "vrs_vqa_1",
+      "question": "Is there an airport runway in the scene?",
+      "answer": "yes",
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": "vrs_vqa_2",
+      "question": "Is there a water reservoir basin visible?",
+      "answer": "yes",
+      "image_name": "delhi_optical.tif"
+    }
   ]
 }

@@ -2,13 +2,11 @@ from typing import Dict, Any, List, Optional
 from .base import BaseTool, ToolParameterError
 from .vlm_vqa import RSVQATool
 from .vlm_grounding import RSGroundingTool
+from .vlm_caption import RSCaptionTool
 from .change_vqa import ChangeVQATool
 from .change_map import ChangeMapTool
 from .fusion_segmenter import OpticalSARFusionTool
-from .stubs import (
-    RSCaptionStubTool,
-    SpectralIndexTool,
-)
+from .spectral_index import SpectralIndexTool
 
 class ToolRegistry:
     """Central singleton registry mapping tool names to typed tool instances."""
@@ -27,7 +25,7 @@ class ToolRegistry:
     def _register_default_tools(self):
         tools = [
             RSVQATool(),
-            RSCaptionStubTool(),
+            RSCaptionTool(),
             RSGroundingTool(),
             ChangeVQATool(),
             ChangeMapTool(),

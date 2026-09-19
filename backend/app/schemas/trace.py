@@ -44,6 +44,8 @@ class ExecutionTrace(BaseModel):
     confidence: Optional[float] = None
     confidence_score: float = 0.0
     confidence_breakdown: Dict[str, float] = Field(default_factory=dict)
+    fallback_used: bool = False
+    stage_latencies: Dict[str, float] = Field(default_factory=dict)
     total_duration_ms: float = 0.0
 
     @model_validator(mode="after")

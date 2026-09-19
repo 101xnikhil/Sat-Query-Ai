@@ -24,11 +24,14 @@ registry:
       - "text_threshold"
   change_vqa:
     description: "Answers bi-temporal comparative questions between two acquisition dates."
-    implementation: "stub"
+    implementation: "model"
     allowed_parameters:
       - "query"
       - "image_t1_path"
       - "image_t2_path"
+      - "change_mask_path"
+      - "change_stats"
+      - "design_mode"
   change_map:
     description: "Generates pixel-level change mask and calculates empirical area changed and direction."
     implementation: "stub"
@@ -39,16 +42,19 @@ registry:
       - "min_area_m2"
   optical_sar_fusion:
     description: "Two-stream optical and SAR cross-modal segmentation for water bodies and built-up areas."
-    implementation: "stub"
+    implementation: "model"
     allowed_parameters:
       - "optical_path"
       - "sar_path"
       - "target_classes"
       - "confidence_threshold"
+      - "ablation_mode"
+      - "sensor_profile"
   spectral_index:
-    description: "Computes spectral indices (NDVI, NDWI, NDBI) with graceful degradation."
-    implementation: "stub"
+    description: "Computes spectral indices (NDVI, NDWI, NDBI) strictly requiring respective bands."
+    implementation: "model"
     allowed_parameters:
       - "image_path"
       - "index_type"
       - "threshold"
+      - "sensor_profile"

@@ -27,5 +27,7 @@ class RSVQATool(BaseTool):
         return RSVQAOutput(
             answer=res["answer"],
             confidence=res["confidence"],
-            evidence_summary=res["evidence"]
+            evidence_summary=res["evidence"],
+            tiles_used=res.get("tiles_used", []),
+            rendering_applied=res.get("rendering_applied")
         )

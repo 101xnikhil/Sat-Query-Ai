@@ -104,26 +104,43 @@ def validate_crs_and_overlap(
 
     res.actions_taken.append(f"Spatial extent overlap verified: IoU = {iou:.3f} >= {min_overlap_iou:.2f}.")
 
-    # Auto reproject if CRS mismatch
-    if img1.crs and img2.crs and img1.crs != img2.crs and auto_reproject:
+    # Co-registration: check CRS, resolution, and grid alignment
+    needs_alignment = False
+    alignment_reason = []
+
+    if img1.crs and img2.crs and img1.crs != img2.crs:
+        needs_alignment = True
+        alignment_reason.append(f"CRS mismatch ({img2.crs} -> {img1.crs})")
+
+    res1 = img1.resolution or (10.0, 10.0)
+    res2 = img2.resolution or (10.0, 10.0)
+    res_ratio = max(res1[0] / max(1e-6, res2[0]), res2[0] / max(1e-6, res1[0]))
+    if res_ratio > 1.05 or (img1.width != img2.width) or (img1.height != img2.height):
+        needs_alignment = True
+        alignment_reason.append(f"Grid/Resolution mismatch ({img2.width}x{img2.height} -> {img1.width}x{img1.height})")
+
+    if needs_alignment and auto_reproject:
         out_dir = Path(output_dir or "data/outputs")
         out_dir.mkdir(parents=True, exist_ok=True)
-        reprojected_path = str(out_dir / f"reprojected_{img2.image_id}.tif")
+        aligned_path = str(out_dir / f"aligned_{img2.image_id}.tif")
 
         reproject_raster_to_match(
             source_path=img2.file_path,
             reference_path=img1.file_path,
-            output_path=reprojected_path
+            output_path=aligned_path
         )
-        res.actions_taken.append(f"Auto-reprojected {img2.image_id} from {img2.crs} to common grid {img1.crs}.")
+        reason_str = ", ".join(alignment_reason)
+        res.actions_taken.append(f"Auto-reprojected and auto-aligned {img2.image_id} to common grid: {reason_str}.")
 
         updated_meta = read_image_metadata(
-            file_path=reprojected_path,
-            image_id=f"reprojected_{img2.image_id}",
+            file_path=aligned_path,
+            image_id=f"aligned_{img2.image_id}",
             modality_hint=img2.modality,
             acquisition_date=img2.acquisition_date
         )
         processed[1] = updated_meta
+    else:
+        res.actions_taken.append("Co-registration verified: common grid, CRS, and resolution aligned.")
 
     return res, processed
 

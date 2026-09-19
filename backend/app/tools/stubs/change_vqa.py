@@ -32,5 +32,6 @@ class ChangeVQAStubTool(BaseTool):
         return ChangeVQAOutput(
             answer=ans,
             confidence=conf,
-            change_summary=summary
+            change_summary=summary,
+            mode="stub"
         )

@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 from pydantic import BaseModel, Field
+import math
 import rasterio
 from rasterio.transform import xy
 import pyproj
@@ -90,6 +91,23 @@ def project_boxes_to_geojson(
                     [round(px_min, 1), round(py_min, 1)],
                 ]
 
+            # Calculate area
+            box_w_px = px_max - px_min
+            box_h_px = py_max - py_min
+            pixel_area = box_w_px * box_h_px
+            res_x, res_y = src.res if src.res else (10.0, 10.0)
+            if is_georef and crs and crs.is_projected:
+                area_m2 = round(pixel_area * abs(res_x * res_y), 2)
+            elif is_georef and crs:
+                # Geographic CRS degrees to approx meters at center latitude
+                center_lat = (py_min + py_max) / 2.0
+                m_per_deg_lat = 111320.0
+                m_per_deg_lon = 111320.0 * math.cos(math.radians(center_lat if abs(center_lat) <= 90 else 0))
+                area_m2 = round(pixel_area * abs(res_x * m_per_deg_lon * res_y * m_per_deg_lat), 2)
+            else:
+                # Default 10m Sentinel-2 / Landsat equivalent
+                area_m2 = round(pixel_area * 100.0, 2)
+
             feature = GeoJSONFeature(
                 type="Feature",
                 geometry=GeoJSONGeometry(type="Polygon", coordinates=[polygon_coords]),
@@ -97,7 +115,10 @@ def project_boxes_to_geojson(
                     "id": f"grounding_{idx + 1}",
                     "label": box.label,
                     "confidence": round(box.confidence, 4),
+                    "score": round(box.confidence, 4),
                     "pixel_box": [round(px_min, 1), round(py_min, 1), round(px_max, 1), round(py_max, 1)],
+                    "area_m2": area_m2,
+                    "area_pixels": round(pixel_area, 1),
                     "georeferenced": is_georef,
                     "query": query or ""
                 }

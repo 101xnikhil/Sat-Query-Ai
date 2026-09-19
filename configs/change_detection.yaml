@@ -1,0 +1,27 @@
+# SatQuery AI - Bi-Temporal Change Detection Configuration
+model:
+  name: "siamese-change-detector"
+  backbone: "tiny_siamese"  # tiny_siamese, resnet18, diff_conv
+  in_channels: 4
+  feature_dim: 64
+  device: "cpu"
+  checkpoint_path: "models/checkpoints/siamese_cd.pt"
+  mock_mode: true
+
+inference:
+  threshold: 0.45
+  min_area_m2: 100.0
+  unchanged_tolerance_pct: 2.0  # Percentage delta below which direction is 'remained unchanged'
+  direction_threshold_ndvi: 0.15
+  vqa_mode: "dual_image"  # dual_image (Mode a), conditioned_on_map (Mode b)
+
+training:
+  output_dir: "models/checkpoints/siamese_cd"
+  epochs: 5
+  batch_size: 4
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  loss: "bce_dice"
+  datasets:
+    - "cdvqa"
+    - "levir_cd"

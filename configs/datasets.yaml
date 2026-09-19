@@ -1,0 +1,44 @@
+# Remote Sensing Datasets Configuration
+datasets:
+  rsvqa:
+    name: "RSVQA"
+    license: "CC BY 4.0"
+    download_url: "https://zenodo.org/records/6344334"
+    lr_split:
+      annotation_path: "data/datasets/sample_rsvqa.json"
+      images_dir: "data/uploads"
+    hr_split:
+      annotation_path: "data/datasets/sample_rsvqa.json"
+      images_dir: "data/uploads"
+    sampling_weight: 0.35
+
+  vrsbench:
+    name: "VRSBench"
+    license: "CC BY-NC-SA 4.0"
+    download_url: "https://github.com/NJU-SIAT/VRSBench"
+    annotation_path: "data/datasets/sample_vrsbench.json"
+    images_dir: "data/uploads"
+    tasks:
+      - "caption"
+      - "vqa"
+      - "grounding"
+    sampling_weight: 0.35
+
+  bigearthnet_txt:
+    name: "BigEarthNet.txt"
+    license: "CDLA-Permissive-1.0"
+    download_url: "https://huggingface.co/datasets/BIFOLD-BigEarthNetv2-0/BigEarthNet.txt"
+    metadata_path: "data/datasets/sample_bigearthnet.txt"
+    images_dir: "data/uploads"
+    sampling_weight: 0.30
+
+  cdvqa:
+    name: "CDVQA"
+    license: "Academic Research / Non-Commercial (SECOND Benchmark)"
+    download_url: "https://github.com/ZhenghangYuan/CDVQA"
+    annotation_path: "data/datasets/sample_cdvqa.json"
+    images_dir: "data/uploads"
+    tasks:
+      - "change_vqa"
+      - "change_map"
+    sampling_weight: 0.25

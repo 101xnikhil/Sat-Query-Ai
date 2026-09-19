@@ -1,60 +1,90 @@
 {
   "benchmark": "RSVQA",
+  "evaluation_timestamp": "2026-09-19T16:10:53.953722Z",
+  "run_config": {
+    "config_path": "models/configs/tiny_cpu_vlm.yaml",
+    "model_name": "tiny-remote-sensing-vlm-cpu",
+    "mock_mode": true,
+    "tile_size": 128,
+    "overlap": 16,
+    "device": "cpu"
+  },
   "dataset_path": "data/datasets/sample_rsvqa.json",
   "total_samples": 5,
-  "overall_accuracy": 1.0,
-  "mean_confidence": 0.9242,
-  "category_accuracy": {
-    "presence": 1.0,
-    "general": 1.0,
-    "comparison": 1.0,
-    "count": 1.0
+  "overall_accuracy": 0.6,
+  "mean_confidence": 0.9155,
+  "accuracy_per_question_type": {
+    "presence": {
+      "accuracy": 1.0,
+      "correct": 2,
+      "total": 2
+    },
+    "general": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 1
+    },
+    "comparison": {
+      "accuracy": 1.0,
+      "correct": 1,
+      "total": 1
+    },
+    "count": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 1
+    }
   },
-  "sample_evaluations": [
+  "sample_predictions": [
     {
       "id": "1",
       "question": "Is there any water body present in this area?",
       "ground_truth": "yes",
-      "prediction": "Yes, water body identified with characteristic low spectral reflectance / backscatter.",
-      "confidence": 0.9268,
+      "prediction": "Yes, the target feature is confirmed across 4 tile sectors.",
+      "confidence": 0.9347,
       "correct": true,
-      "category": "presence"
+      "category": "presence",
+      "rendering_applied": "multispectral_true_color_rgb"
     },
     {
       "id": "2",
       "question": "What is the dominant terrain or land use?",
       "ground_truth": "urban and agricultural",
-      "prediction": "The dominant terrain comprises mixed urban and agricultural land use.",
-      "confidence": 0.9116,
-      "correct": true,
-      "category": "general"
+      "prediction": "Analysis of the remote sensing scene for 'What is the dominant terrain or land use?' reveals terrain with mean signal 127.0.",
+      "confidence": 0.8521,
+      "correct": false,
+      "category": "general",
+      "rendering_applied": "multispectral_true_color_rgb"
     },
     {
       "id": "3",
       "question": "Are there more residential buildings than water bodies?",
       "ground_truth": "yes",
-      "prediction": "Yes, water body identified with characteristic low spectral reflectance / backscatter.",
-      "confidence": 0.9268,
+      "prediction": "Yes, the target feature is confirmed across 4 tile sectors.",
+      "confidence": 0.9347,
       "correct": true,
-      "category": "comparison"
+      "category": "comparison",
+      "rendering_applied": "multispectral_true_color_rgb"
     },
     {
       "id": "4",
       "question": "How many major airport runways are visible?",
       "ground_truth": "2",
-      "prediction": "2 major airport infrastructure features including paved runway sectors and adjacent taxiways are visible.",
-      "confidence": 0.9048,
-      "correct": true,
-      "category": "count"
+      "prediction": "There are 8 detected instances in the scene.",
+      "confidence": 0.9109,
+      "correct": false,
+      "category": "count",
+      "rendering_applied": "multispectral_true_color_rgb"
     },
     {
       "id": "5",
       "question": "Is there active vegetation canopy in the southern sector?",
       "ground_truth": "yes",
-      "prediction": "Yes, dense active photosynthetic vegetation detected across the terrain.",
-      "confidence": 0.9512,
+      "prediction": "Yes, the target feature is confirmed across 4 tile sectors.",
+      "confidence": 0.9449,
       "correct": true,
-      "category": "presence"
+      "category": "presence",
+      "rendering_applied": "multispectral_false_color_cir"
     }
   ]
 }

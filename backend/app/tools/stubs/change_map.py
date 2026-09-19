@@ -96,5 +96,6 @@ class ChangeMapStubTool(BaseTool):
             area_changed_km2=area_changed_km2,
             percentage_changed=percentage_changed,
             direction_of_change=direction,
-            geojson=geojson
+            geojson=geojson,
+            mode="stub"
         )

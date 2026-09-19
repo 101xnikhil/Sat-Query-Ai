@@ -43,12 +43,22 @@ class ToolWhitelistItem(BaseModel):
 class ToolsConfig(BaseModel):
     whitelist: List[ToolWhitelistItem] = Field(default_factory=list)
 
+class ControllerConfig(BaseModel):
+    backend: str = "local"  # "local", "api", "huggingface"
+    model_name: str = "Qwen/Qwen2.5-1.5B-Instruct"
+    api_base: str = "http://localhost:11434/v1"
+    api_key: str = ""
+    timeout_seconds: float = 3.0
+    temperature: float = 0.0
+    strict_whitelist: bool = True
+
 class Settings(BaseModel):
     version: str = "1.0.0"
     app: AppConfig = Field(default_factory=AppConfig)
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
     models: ModelsConfig = Field(default_factory=ModelsConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    controller: ControllerConfig = Field(default_factory=ControllerConfig)
 
 _settings: Settings = None
 

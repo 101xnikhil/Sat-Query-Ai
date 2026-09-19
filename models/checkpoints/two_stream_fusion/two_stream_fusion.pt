@@ -1,0 +1,1 @@
+{"model": "two_stream_fusion_net", "optical_channels": 4, "sar_channels": 2, "num_classes": 3, "steps": 3, "final_loss": 0.4506}

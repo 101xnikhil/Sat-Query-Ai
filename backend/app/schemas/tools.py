@@ -12,7 +12,9 @@ class RSVQAOutput(BaseModel):
     answer: str
     confidence: float
     evidence_summary: str
-    mode: str = "stub"
+    tiles_used: List[Dict[str, Any]] = Field(default_factory=list)
+    rendering_applied: Optional[str] = None
+    mode: str = "model"
 
 # RSCaption
 class RSCaptionInput(BaseModel):
@@ -24,7 +26,8 @@ class RSCaptionOutput(BaseModel):
     caption: str
     tags: List[str] = Field(default_factory=list)
     confidence: float
-    mode: str = "stub"
+    rendering_applied: Optional[str] = None
+    mode: str = "model"
 
 # RSGrounding
 class RSGroundingInput(BaseModel):
@@ -38,34 +41,45 @@ class RSGroundingOutput(BaseModel):
     detected_count: int
     labels: List[str] = Field(default_factory=list)
     confidences: List[float] = Field(default_factory=list)
-    mode: str = "stub"
+    tiles_used: List[Dict[str, Any]] = Field(default_factory=list)
+    rendering_applied: Optional[str] = None
+    mode: str = "model"
 
 # ChangeVQA
 class ChangeVQAInput(BaseModel):
     query: str
     image_t1_path: str
     image_t2_path: str
+    change_mask_path: Optional[str] = None
+    change_stats: Optional[Dict[str, Any]] = None
+    design_mode: Optional[str] = None
 
 class ChangeVQAOutput(BaseModel):
     answer: str
     confidence: float
     change_summary: str
-    mode: str = "stub"
+    direction: Optional[str] = None
+    mask_verified: bool = True
+    vlm_cross_check_agreed: Optional[bool] = None
+    mode: str = "model"
 
 # ChangeMap
 class ChangeMapInput(BaseModel):
     image_t1_path: str
     image_t2_path: str
-    threshold: float = 0.5
+    threshold: float = 0.45
     min_area_m2: float = 100.0
 
 class ChangeMapOutput(BaseModel):
     change_mask_path: str
-    area_changed_km2: float
-    percentage_changed: float
+    area_changed_m2: float = 0.0
+    area_changed_ha: float = 0.0
+    area_changed_km2: float = 0.0
+    percentage_changed: float = 0.0
     direction_of_change: str
+    per_class_change: Optional[Dict[str, float]] = None
     geojson: Optional[GeoJSONFeatureCollection] = None
-    mode: str = "stub"
+    mode: str = "model"
 
 # OpticalSARFusion
 class OpticalSARFusionInput(BaseModel):
@@ -73,27 +87,41 @@ class OpticalSARFusionInput(BaseModel):
     sar_path: str
     target_classes: List[str] = Field(default_factory=lambda: ["water", "built_up"])
     confidence_threshold: float = 0.5
+    ablation_mode: str = "fused"  # "fused", "optical_only", "sar_only"
+    sensor_profile: Optional[str] = None
 
 class OpticalSARFusionOutput(BaseModel):
     classification_map_path: str
-    water_area_km2: float
-    built_up_area_km2: float
-    water_percentage: float
-    built_up_percentage: float
+    water_area_m2: float = 0.0
+    water_area_ha: float = 0.0
+    water_area_km2: float = 0.0
+    water_percentage: float = 0.0
+    built_up_area_m2: float = 0.0
+    built_up_area_ha: float = 0.0
+    built_up_area_km2: float = 0.0
+    built_up_percentage: float = 0.0
     geojson: Optional[GeoJSONFeatureCollection] = None
-    mode: str = "stub"
+    ablation_mode: str = "fused"
+    degradation_mode: Optional[str] = None
+    resampling_info: Optional[Dict[str, Any]] = None
+    mode: str = "model"
 
 # SpectralIndex
 class SpectralIndexInput(BaseModel):
     image_path: str
-    index_type: str = "NDVI"  # NDVI, NDWI, NDBI
-    threshold: float = 0.2
+    index_type: str = "NDWI"  # NDVI, NDWI, NDBI
+    threshold: float = 0.0
+    sensor_profile: Optional[str] = "sentinel2"
 
 class SpectralIndexOutput(BaseModel):
     index_type: str
-    index_map_path: str
-    mean_index: float
-    positive_area_km2: float
-    positive_percentage: float
+    status: str = "computed"  # "computed" or "not_applicable"
+    reason: Optional[str] = None
+    index_map_path: Optional[str] = None
+    mean_index: Optional[float] = None
+    positive_area_m2: float = 0.0
+    positive_area_ha: float = 0.0
+    positive_area_km2: float = 0.0
+    positive_percentage: float = 0.0
     geojson: Optional[GeoJSONFeatureCollection] = None
-    mode: str = "stub"
+    mode: str = "model"

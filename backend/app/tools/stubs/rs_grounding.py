@@ -61,5 +61,6 @@ class RSGroundingStubTool(BaseTool):
             geojson=GeoJSONFeatureCollection(type="FeatureCollection", features=features),
             detected_count=len(features),
             labels=labels,
-            confidences=confidences
+            confidences=confidences,
+            mode="stub"
         )
