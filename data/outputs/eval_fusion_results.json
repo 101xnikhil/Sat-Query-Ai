@@ -1,0 +1,55 @@
+{
+  "benchmark": "Optical-SAR-Fusion",
+  "dataset_path": "data/datasets/sample_optical_sar.json",
+  "total_samples": 3,
+  "consistency_rate": 1.0,
+  "mean_cross_tool_ndwi_agreement": 0.5849,
+  "mean_water_iou": 0.5849,
+  "sample_evaluations": [
+    {
+      "id": 1,
+      "name": "delhi_urban_agricultural",
+      "optical_path": "data/samples/delhi_optical.tif",
+      "sar_path": "data/samples/delhi_sar.tif",
+      "rgb_degraded": false,
+      "water_percentage": 0.0,
+      "water_area_km2": 0.0,
+      "built_up_percentage": 96.35,
+      "built_up_area_km2": 119.4014,
+      "ndwi_positive_percentage": 0.0,
+      "cross_tool_ndwi_agreement": 1.0,
+      "expected_consistent": true,
+      "geojson_features_count": 60
+    },
+    {
+      "id": 2,
+      "name": "lake_wetland_reservoir",
+      "optical_path": "data/samples/lake_optical.tif",
+      "sar_path": "data/samples/lake_sar.tif",
+      "rgb_degraded": false,
+      "water_percentage": 13.69,
+      "water_area_km2": 16.9617,
+      "built_up_percentage": 7.99,
+      "built_up_area_km2": 9.9044,
+      "ndwi_positive_percentage": 18.14,
+      "cross_tool_ndwi_agreement": 0.7547,
+      "expected_consistent": true,
+      "geojson_features_count": 34
+    },
+    {
+      "id": 3,
+      "name": "lake_rgb_degraded",
+      "optical_path": "data/samples/lake_optical.tif",
+      "sar_path": "data/samples/lake_sar.tif",
+      "rgb_degraded": true,
+      "water_percentage": 13.89,
+      "water_area_km2": 17.2189,
+      "built_up_percentage": 10.29,
+      "built_up_area_km2": 12.7546,
+      "ndwi_positive_percentage": 0.0,
+      "cross_tool_ndwi_agreement": 0.0,
+      "expected_consistent": true,
+      "geojson_features_count": 60
+    }
+  ]
+}

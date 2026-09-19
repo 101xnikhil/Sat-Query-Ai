@@ -1,0 +1,34 @@
+[
+  {
+    "query": "What is the primary land cover present in this scene?",
+    "image_ids": [
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_optical.tif"
+    ]
+  },
+  {
+    "query": "Where are the runways located?",
+    "image_ids": [
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_optical.tif"
+    ]
+  },
+  {
+    "query": "Describe the scene overview and structure",
+    "image_ids": [
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_optical.tif"
+    ]
+  },
+  {
+    "query": "Segment water and built-up areas using both optical and radar sensors",
+    "image_ids": [
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_optical.tif",
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_sar.tif"
+    ]
+  },
+  {
+    "query": "What changed between date T1 and date T2?",
+    "image_ids": [
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_optical.tif",
+      "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/samples/delhi_t2.tif"
+    ]
+  }
+]

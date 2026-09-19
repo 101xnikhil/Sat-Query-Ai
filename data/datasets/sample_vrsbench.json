@@ -1,0 +1,32 @@
+{
+  "info": {
+    "dataset": "VRSBench-Sample",
+    "description": "Synthetic benchmark split for VRSBench visual referring expression grounding"
+  },
+  "annotations": [
+    {
+      "id": 1,
+      "expression": "the long asphalt runway oriented horizontally",
+      "bbox": [0.20, 0.15, 0.35, 0.85],
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 2,
+      "expression": "the smaller secondary taxiway corridor",
+      "bbox": [0.45, 0.25, 0.55, 0.75],
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 3,
+      "expression": "the dense commercial built-up sector in the north-east",
+      "bbox": [0.10, 0.55, 0.50, 0.92],
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 4,
+      "expression": "the water basin along the south-western perimeter",
+      "bbox": [0.55, 0.10, 0.90, 0.45],
+      "image_name": "delhi_optical.tif"
+    }
+  ]
+}

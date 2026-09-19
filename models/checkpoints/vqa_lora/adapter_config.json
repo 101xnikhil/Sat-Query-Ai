@@ -1,0 +1,19 @@
+{
+  "base_model_name": "Qwen/Qwen2-VL-7B-Instruct",
+  "peft_type": "LORA",
+  "r": 16,
+  "lora_alpha": 32,
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "dataset": "bigearthnet",
+  "samples_trained": 3,
+  "epochs": 3,
+  "final_loss": 0.385
+}

@@ -1,0 +1,51 @@
+# SatQuery AI Default Configuration
+version: "1.0.0"
+app:
+  name: "SatQuery AI"
+  debug: true
+  host: "0.0.0.0"
+  port: 8000
+  storage_dir: "data/uploads"
+  outputs_dir: "data/outputs"
+
+validation:
+  min_overlap_iou: 0.10
+  auto_reproject: true
+  default_target_crs: "EPSG:4326"
+  sar:
+    db_conversion: true
+    epsilon: 1.0e-7
+    speckle_filter: "lee"
+    filter_window_size: 3
+    damping_factor: 1.0
+
+models:
+  base_vlm:
+    name: "Qwen/Qwen2-VL-7B-Instruct" # Configurable base VLM for Phase 2
+    device: "cpu"                      # "cuda" when external GPU used
+    lora_checkpoint_dir: "models/checkpoints/vqa_lora"
+    max_tokens: 512
+  datasets:
+    primary: "BigEarthNet"
+    additional:
+      - "RSVQA"
+      - "VRSBench"
+      - "CDVQA"
+    splits_dir: "data/datasets"
+
+tools:
+  whitelist:
+    - name: "rs_vqa"
+      allowed_params: ["query", "image_path", "confidence_threshold"]
+    - name: "rs_caption"
+      allowed_params: ["image_path", "max_length", "style"]
+    - name: "rs_grounding"
+      allowed_params: ["query", "image_path", "box_threshold", "text_threshold"]
+    - name: "change_vqa"
+      allowed_params: ["query", "image_t1_path", "image_t2_path"]
+    - name: "change_map"
+      allowed_params: ["image_t1_path", "image_t2_path", "threshold", "min_area_m2"]
+    - name: "optical_sar_fusion"
+      allowed_params: ["optical_path", "sar_path", "target_classes", "confidence_threshold"]
+    - name: "spectral_index"
+      allowed_params: ["image_path", "index_type", "threshold"]

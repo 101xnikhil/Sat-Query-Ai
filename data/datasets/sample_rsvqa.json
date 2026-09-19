@@ -1,0 +1,43 @@
+{
+  "info": {
+    "dataset": "RSVQA-Sample",
+    "description": "Synthetic benchmark split for RSVQA testing and evaluation"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "Is there any water body present in this area?",
+      "answer": "yes",
+      "type": "presence",
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 2,
+      "question": "What is the dominant terrain or land use?",
+      "answer": "urban and agricultural",
+      "type": "general",
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 3,
+      "question": "Are there more residential buildings than water bodies?",
+      "answer": "yes",
+      "type": "comparison",
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 4,
+      "question": "How many major airport runways are visible?",
+      "answer": "2",
+      "type": "count",
+      "image_name": "delhi_optical.tif"
+    },
+    {
+      "id": 5,
+      "question": "Is there active vegetation canopy in the southern sector?",
+      "answer": "yes",
+      "type": "presence",
+      "image_name": "delhi_optical.tif"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "benchmark": "VRSBench",
+  "dataset_path": "data/datasets/sample_vrsbench.json",
+  "total_samples": 4,
+  "mean_iou": 0.5142,
+  "acc_at_50": 0.5,
+  "acc_at_75": 0.5,
+  "sample_evaluations": [
+    {
+      "id": "1",
+      "expression": "the long asphalt runway oriented horizontally",
+      "ground_truth_bbox": [
+        0.2,
+        0.15,
+        0.35,
+        0.85
+      ],
+      "best_prediction_bbox": [
+        0.2,
+        0.15,
+        0.35,
+        0.85
+      ],
+      "iou": 1.0,
+      "hit_at_50": true,
+      "hit_at_75": true
+    },
+    {
+      "id": "2",
+      "expression": "the smaller secondary taxiway corridor",
+      "ground_truth_bbox": [
+        0.45,
+        0.25,
+        0.55,
+        0.75
+      ],
+      "best_prediction_bbox": [
+        0.2,
+        0.2,
+        0.48,
+        0.48
+      ],
+      "iou": 0.0568,
+      "hit_at_50": false,
+      "hit_at_75": false
+    },
+    {
+      "id": "3",
+      "expression": "the dense commercial built-up sector in the north-east",
+      "ground_truth_bbox": [
+        0.1,
+        0.55,
+        0.5,
+        0.92
+      ],
+      "best_prediction_bbox": null,
+      "iou": 0.0,
+      "hit_at_50": false,
+      "hit_at_75": false
+    },
+    {
+      "id": "4",
+      "expression": "the water basin along the south-western perimeter",
+      "ground_truth_bbox": [
+        0.55,
+        0.1,
+        0.9,
+        0.45
+      ],
+      "best_prediction_bbox": [
+        0.55,
+        0.1,
+        0.9,
+        0.45
+      ],
+      "iou": 1.0,
+      "hit_at_50": true,
+      "hit_at_75": true
+    }
+  ]
+}

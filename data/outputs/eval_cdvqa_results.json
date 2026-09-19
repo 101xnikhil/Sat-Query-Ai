@@ -1,0 +1,86 @@
+{
+  "benchmark": "CDVQA",
+  "dataset_path": "data/datasets/sample_cdvqa.json",
+  "total_samples": 5,
+  "vqa_accuracy": 1.0,
+  "change_detection_accuracy": 1.0,
+  "mean_confidence": 0.9189,
+  "category_accuracy": {
+    "presence": 1.0,
+    "urban_growth": 1.0,
+    "vegetation_loss": 1.0,
+    "direction": 1.0
+  },
+  "sample_evaluations": [
+    {
+      "id": "1",
+      "question": "Did any land-cover change occur between date T1 and date T2?",
+      "ground_truth": "yes",
+      "prediction": "Yes, bi-temporal comparative analysis for 'Did any land-cover change occur between date T1 and date T2?' confirms 11.1374 km\u00b2 (8.99% of scene) underwent change. Primary change dynamic: vegetation loss / deforestation.",
+      "confidence": 0.9048,
+      "vqa_correct": true,
+      "category": "presence",
+      "expected_change": true,
+      "detected_change": true,
+      "area_changed_km2": 11.1374,
+      "percentage_changed": 8.99,
+      "direction": "vegetation loss / deforestation"
+    },
+    {
+      "id": "2",
+      "question": "Was there new construction or built-up expansion between the dates?",
+      "ground_truth": "yes",
+      "prediction": "Yes, new construction and built-up expansion identified across 11.1374 km\u00b2 (8.99% of total area).",
+      "confidence": 0.9293,
+      "vqa_correct": true,
+      "category": "urban_growth",
+      "expected_change": true,
+      "detected_change": true,
+      "area_changed_km2": 11.1374,
+      "percentage_changed": 8.99,
+      "direction": "vegetation loss / deforestation"
+    },
+    {
+      "id": "3",
+      "question": "Did vegetation canopy decrease in the changed sector?",
+      "ground_truth": "yes",
+      "prediction": "Yes, vegetation canopy alteration identified: vegetation loss / deforestation impacting 11.1374 km\u00b2 (8.99% of area).",
+      "confidence": 0.9324,
+      "vqa_correct": true,
+      "category": "vegetation_loss",
+      "expected_change": true,
+      "detected_change": true,
+      "area_changed_km2": 11.1374,
+      "percentage_changed": 8.99,
+      "direction": "vegetation loss / deforestation"
+    },
+    {
+      "id": "4",
+      "question": "What is the primary change dynamic observed?",
+      "ground_truth": "vegetation loss",
+      "prediction": "bi-temporal comparative analysis for 'What is the primary change dynamic observed?' confirms 11.1374 km\u00b2 (8.99% of scene) underwent change. Primary change dynamic: vegetation loss / deforestation.",
+      "confidence": 0.9048,
+      "vqa_correct": true,
+      "category": "direction",
+      "expected_change": true,
+      "detected_change": true,
+      "area_changed_km2": 11.1374,
+      "percentage_changed": 8.99,
+      "direction": "vegetation loss / deforestation"
+    },
+    {
+      "id": "5",
+      "question": "Did any significant changes occur in this pair?",
+      "ground_truth": "no",
+      "prediction": "No, no significant morphological or land-cover change detected between date T1 and date T2.",
+      "confidence": 0.9231,
+      "vqa_correct": true,
+      "category": "presence",
+      "expected_change": false,
+      "detected_change": false,
+      "area_changed_km2": 0.0,
+      "percentage_changed": 0.0,
+      "direction": "no significant change"
+    }
+  ]
+}

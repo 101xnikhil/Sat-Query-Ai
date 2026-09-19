@@ -1,0 +1,4 @@
+# BigEarthNet Sample Metadata (patch_name, class_1, class_2, ...)
+delhi_optical	Continuous urban fabric	Arable land	Inland waters
+delhi_sar	Discontinuous urban fabric	Industrial or commercial units
+delhi_t2	Continuous urban fabric	Construction sites

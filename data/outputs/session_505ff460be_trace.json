@@ -1,0 +1,81 @@
+{
+  "session_id": "session_505ff460be",
+  "task": "optical_sar_analysis",
+  "timestamp_utc": "2026-09-19T08:02:07.148414+00:00",
+  "input_validation": {
+    "passed": true,
+    "crs_check": {
+      "img1_crs": "EPSG:4326",
+      "img2_crs": "EPSG:4326",
+      "crs_match": true
+    },
+    "overlap_iou": 1.0,
+    "reprojections": [],
+    "sar_preprocessing": [
+      {
+        "source": "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/uploads/delhi_sar_41561d.tif",
+        "preprocessed_path": "data/outputs/sar_preprocessed_delhi_sar_41561d.tif",
+        "db_conversion": true,
+        "speckle_filter": "lee",
+        "window_size": 3,
+        "bands_processed": 1
+      }
+    ],
+    "errors": [],
+    "warnings": []
+  },
+  "tool_calls": [
+    {
+      "tool_name": "optical_sar_fusion",
+      "parameters": {
+        "optical_path": "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/uploads/delhi_opt_499729.tif",
+        "sar_path": "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/outputs/sar_preprocessed_delhi_sar_41561d.tif",
+        "target_classes": [
+          "water",
+          "built_up"
+        ],
+        "confidence_threshold": 0.5
+      },
+      "status": "success",
+      "duration_ms": 1.76,
+      "output_summary": {
+        "classification_map_path": "data/outputs/fusion_map_delhi_opt_499729.tif",
+        "water_area_km2": 0.3253,
+        "built_up_area_km2": 0.9108,
+        "water_percentage": 1.05,
+        "built_up_percentage": 2.94
+      },
+      "error": null
+    },
+    {
+      "tool_name": "spectral_index",
+      "parameters": {
+        "image_path": "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/uploads/delhi_opt_499729.tif",
+        "index_type": "NDWI",
+        "threshold": 0.15
+      },
+      "status": "success",
+      "duration_ms": 1.38,
+      "output_summary": {
+        "index_type": "NDWI",
+        "index_map_path": "data/outputs/index_NDWI_delhi_opt_499729.tif",
+        "mean_index": -0.442,
+        "positive_area_km2": 0.0,
+        "positive_percentage": 0.0
+      },
+      "error": null
+    }
+  ],
+  "computed_metrics": {
+    "water_area_km2": 0.3253,
+    "built_up_area_km2": 0.9108,
+    "water_percentage": 1.05,
+    "built_up_percentage": 2.94
+  },
+  "confidence_score": 0.9358,
+  "confidence_breakdown": {
+    "fusion_segmenter": 0.9,
+    "cross_tool_ndwi_agreement": 0.9895
+  },
+  "total_duration_ms": 8.82
+}

@@ -1,0 +1,39 @@
+{
+  "info": {
+    "dataset": "Optical-SAR-Fusion-Benchmark",
+    "description": "Co-registered multi-modal Optical and Synthetic Aperture Radar (SAR) evaluation benchmark"
+  },
+  "samples": [
+    {
+      "id": 1,
+      "name": "delhi_urban_agricultural",
+      "description": "Metropolitan and peri-urban landscape with dense built-up structures and low surface water",
+      "optical_path": "data/samples/delhi_optical.tif",
+      "sar_path": "data/samples/delhi_sar.tif",
+      "expected_dominant_class": "built_up",
+      "min_built_up_percentage": 50.0,
+      "max_water_percentage": 5.0
+    },
+    {
+      "id": 2,
+      "name": "lake_wetland_reservoir",
+      "description": "Co-registered lake reservoir with surrounding vegetation and built-up cluster",
+      "optical_path": "data/samples/lake_optical.tif",
+      "sar_path": "data/samples/lake_sar.tif",
+      "expected_dominant_class": "background",
+      "min_water_percentage": 8.0,
+      "min_built_up_percentage": 2.0
+    },
+    {
+      "id": 3,
+      "name": "lake_rgb_degraded",
+      "description": "RGB-only degradation test for optical-SAR fusion with simulated missing NIR band",
+      "optical_path": "data/samples/lake_optical.tif",
+      "sar_path": "data/samples/lake_sar.tif",
+      "expected_dominant_class": "background",
+      "min_water_percentage": 5.0,
+      "min_built_up_percentage": 2.0,
+      "test_rgb_only": true
+    }
+  ]
+}

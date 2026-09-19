@@ -1,0 +1,38 @@
+{
+  "session_id": "session_4322ac83e8",
+  "task": "single_vqa",
+  "timestamp_utc": "2026-09-19T08:02:07.121708+00:00",
+  "input_validation": {
+    "passed": true,
+    "crs_check": {},
+    "overlap_iou": null,
+    "reprojections": [],
+    "sar_preprocessing": [],
+    "errors": [],
+    "warnings": []
+  },
+  "tool_calls": [
+    {
+      "tool_name": "rs_vqa",
+      "parameters": {
+        "query": "What is the primary terrain or land cover present?",
+        "image_path": "/Users/divyshresthvishwakarma/Downloads/Sat-Query Ai/Sat-Query-Ai/data/uploads/sample_delhi_79f017.tif",
+        "confidence_threshold": 0.5
+      },
+      "status": "success",
+      "duration_ms": 0.01,
+      "output_summary": {
+        "answer": "Analysis of the remote sensing image indicates terrain features directly addressing 'What is the primary terrain or land cover present?'.",
+        "confidence": 0.85,
+        "evidence_summary": "Extracted spectral and structural textural features across visible and infrared bands."
+      },
+      "error": null
+    }
+  ],
+  "computed_metrics": {},
+  "confidence_score": 0.85,
+  "confidence_breakdown": {
+    "vlm": 0.85
+  },
+  "total_duration_ms": 0.08
+}

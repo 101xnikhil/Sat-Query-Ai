@@ -1,0 +1,60 @@
+{
+  "benchmark": "RSVQA",
+  "dataset_path": "data/datasets/sample_rsvqa.json",
+  "total_samples": 5,
+  "overall_accuracy": 1.0,
+  "mean_confidence": 0.9242,
+  "category_accuracy": {
+    "presence": 1.0,
+    "general": 1.0,
+    "comparison": 1.0,
+    "count": 1.0
+  },
+  "sample_evaluations": [
+    {
+      "id": "1",
+      "question": "Is there any water body present in this area?",
+      "ground_truth": "yes",
+      "prediction": "Yes, water body identified with characteristic low spectral reflectance / backscatter.",
+      "confidence": 0.9268,
+      "correct": true,
+      "category": "presence"
+    },
+    {
+      "id": "2",
+      "question": "What is the dominant terrain or land use?",
+      "ground_truth": "urban and agricultural",
+      "prediction": "The dominant terrain comprises mixed urban and agricultural land use.",
+      "confidence": 0.9116,
+      "correct": true,
+      "category": "general"
+    },
+    {
+      "id": "3",
+      "question": "Are there more residential buildings than water bodies?",
+      "ground_truth": "yes",
+      "prediction": "Yes, water body identified with characteristic low spectral reflectance / backscatter.",
+      "confidence": 0.9268,
+      "correct": true,
+      "category": "comparison"
+    },
+    {
+      "id": "4",
+      "question": "How many major airport runways are visible?",
+      "ground_truth": "2",
+      "prediction": "2 major airport infrastructure features including paved runway sectors and adjacent taxiways are visible.",
+      "confidence": 0.9048,
+      "correct": true,
+      "category": "count"
+    },
+    {
+      "id": "5",
+      "question": "Is there active vegetation canopy in the southern sector?",
+      "ground_truth": "yes",
+      "prediction": "Yes, dense active photosynthetic vegetation detected across the terrain.",
+      "confidence": 0.9512,
+      "correct": true,
+      "category": "presence"
+    }
+  ]
+}

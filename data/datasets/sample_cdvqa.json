@@ -1,0 +1,53 @@
+{
+  "info": {
+    "dataset": "CDVQA-Sample",
+    "description": "Synthetic benchmark split for CDVQA bi-temporal change visual question answering"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "Did any land-cover change occur between date T1 and date T2?",
+      "answer": "yes",
+      "change_type": "presence",
+      "has_change": true,
+      "image_t1": "delhi_optical.tif",
+      "image_t2": "delhi_t2.tif"
+    },
+    {
+      "id": 2,
+      "question": "Was there new construction or built-up expansion between the dates?",
+      "answer": "yes",
+      "change_type": "urban_growth",
+      "has_change": true,
+      "image_t1": "delhi_optical.tif",
+      "image_t2": "delhi_t2.tif"
+    },
+    {
+      "id": 3,
+      "question": "Did vegetation canopy decrease in the changed sector?",
+      "answer": "yes",
+      "change_type": "vegetation_loss",
+      "has_change": true,
+      "image_t1": "delhi_optical.tif",
+      "image_t2": "delhi_t2.tif"
+    },
+    {
+      "id": 4,
+      "question": "What is the primary change dynamic observed?",
+      "answer": "vegetation loss",
+      "change_type": "direction",
+      "has_change": true,
+      "image_t1": "delhi_optical.tif",
+      "image_t2": "delhi_t2.tif"
+    },
+    {
+      "id": 5,
+      "question": "Did any significant changes occur in this pair?",
+      "answer": "no",
+      "change_type": "presence",
+      "has_change": false,
+      "image_t1": "delhi_optical.tif",
+      "image_t2": "delhi_optical.tif"
+    }
+  ]
+}
