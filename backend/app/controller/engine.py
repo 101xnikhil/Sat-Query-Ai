@@ -213,8 +213,68 @@ class ControllerEngine:
         base_confidence = 0.85
         conf_breakdown: Dict[str, float] = {}
 
+        # Change Tasks
+        if task in (TaskType.CHANGE_VQA, TaskType.CHANGE_MAP) or (("change_vqa" in tool_results or "change_map" in tool_results) and "optical_sar_fusion" not in tool_results):
+            cvqa_res = tool_results.get("change_vqa")
+            vqa_ans = cvqa_res.answer if cvqa_res else ""
+            if "change_map" in tool_results:
+                cmap_res: ChangeMapOutput = tool_results["change_map"]
+                area_m2 = getattr(cmap_res, "area_changed_m2", 0.0)
+                area_ha = getattr(cmap_res, "area_changed_ha", round(area_m2 / 10000.0, 4))
+                area_km2 = cmap_res.area_changed_km2
+                pct = cmap_res.percentage_changed
+                direction = cmap_res.direction_of_change
+
+                computed_metrics["area_changed_m2"] = area_m2
+                computed_metrics["area_changed_ha"] = area_ha
+                computed_metrics["area_changed_km2"] = area_km2
+                computed_metrics["percentage_changed"] = pct
+                computed_metrics["direction_of_change"] = direction
+                if getattr(cmap_res, "per_class_change", None):
+                    computed_metrics["per_class_change"] = cmap_res.per_class_change
+
+                if vqa_ans:
+                    final_answer = vqa_ans
+                else:
+                    final_answer = (
+                        f"Multitemporal change analysis confirms {area_m2:.1f} m² ({area_ha:.3f} ha, {pct:.2f}% of scene) "
+                        f"underwent change. Primary dynamic: {direction}."
+                    )
+
+                if "changed_water_area_m2" in computed_metrics and "changed_built_up_area_m2" in computed_metrics:
+                    final_answer += (
+                        f"\n• Multi-step Land-Cover Breakdown: Of the changed area, {computed_metrics['changed_water_area_m2']:,.1f} m² "
+                        f"({computed_metrics['changed_water_percentage']}%) is surface water and "
+                        f"{computed_metrics['changed_built_up_area_m2']:,.1f} m² ({computed_metrics['changed_built_up_percentage']}%) "
+                        f"is built-up urban structures."
+                    )
+
+                if cvqa_res:
+                    base_confidence = cvqa_res.confidence
+                    conf_breakdown["change_vqa"] = cvqa_res.confidence
+                    conf_breakdown["change_detector"] = 0.90
+                    if cvqa_res.vlm_cross_check_agreed is not None:
+                        computed_metrics["vlm_cross_check_agreed"] = cvqa_res.vlm_cross_check_agreed
+                else:
+                    base_confidence = 0.89
+                    conf_breakdown["change_detector"] = 0.89
+
+                if cmap_res.geojson:
+                    layers.append(LayerItem(
+                        layer_id=f"change_{uuid.uuid4().hex[:6]}",
+                        name="Temporal Change Footprint",
+                        type="geojson",
+                        geojson=cmap_res.geojson,
+                        color="#f43f5e",
+                        opacity=0.65
+                    ))
+            else:
+                final_answer = vqa_ans
+                base_confidence = cvqa_res.confidence if cvqa_res else 0.86
+                conf_breakdown["vqa"] = base_confidence
+
         # Grounding
-        if "rs_grounding" in tool_results:
+        elif "rs_grounding" in tool_results:
             ground_res: RSGroundingOutput = tool_results["rs_grounding"]
             final_answer = (
                 f"Identified {ground_res.detected_count} target region(s) matching '{request.query}' "
@@ -401,65 +461,7 @@ class ControllerEngine:
                         opacity=0.80
                     ))
 
-        # Change Tasks
-        elif "change_vqa" in tool_results or "change_map" in tool_results:
-            cvqa_res = tool_results.get("change_vqa")
-            vqa_ans = cvqa_res.answer if cvqa_res else ""
-            if "change_map" in tool_results:
-                cmap_res: ChangeMapOutput = tool_results["change_map"]
-                area_m2 = getattr(cmap_res, "area_changed_m2", 0.0)
-                area_ha = getattr(cmap_res, "area_changed_ha", round(area_m2 / 10000.0, 4))
-                area_km2 = cmap_res.area_changed_km2
-                pct = cmap_res.percentage_changed
-                direction = cmap_res.direction_of_change
 
-                computed_metrics["area_changed_m2"] = area_m2
-                computed_metrics["area_changed_ha"] = area_ha
-                computed_metrics["area_changed_km2"] = area_km2
-                computed_metrics["percentage_changed"] = pct
-                computed_metrics["direction_of_change"] = direction
-                if getattr(cmap_res, "per_class_change", None):
-                    computed_metrics["per_class_change"] = cmap_res.per_class_change
-
-                if vqa_ans:
-                    final_answer = vqa_ans
-                else:
-                    final_answer = (
-                        f"Multitemporal change analysis confirms {area_m2:.1f} m² ({area_ha:.3f} ha, {pct:.2f}% of scene) "
-                        f"underwent change. Primary dynamic: {direction}."
-                    )
-
-                if "changed_water_area_m2" in computed_metrics and "changed_built_up_area_m2" in computed_metrics:
-                    final_answer += (
-                        f"\n• Multi-step Land-Cover Breakdown: Of the changed area, {computed_metrics['changed_water_area_m2']:,.1f} m² "
-                        f"({computed_metrics['changed_water_percentage']}%) is surface water and "
-                        f"{computed_metrics['changed_built_up_area_m2']:,.1f} m² ({computed_metrics['changed_built_up_percentage']}%) "
-                        f"is built-up urban structures."
-                    )
-
-                if cvqa_res:
-                    base_confidence = cvqa_res.confidence
-                    conf_breakdown["change_vqa"] = cvqa_res.confidence
-                    conf_breakdown["change_detector"] = 0.90
-                    if cvqa_res.vlm_cross_check_agreed is not None:
-                        computed_metrics["vlm_cross_check_agreed"] = cvqa_res.vlm_cross_check_agreed
-                else:
-                    base_confidence = 0.89
-                    conf_breakdown["change_detector"] = 0.89
-
-                if cmap_res.geojson:
-                    layers.append(LayerItem(
-                        layer_id=f"change_{uuid.uuid4().hex[:6]}",
-                        name="Temporal Change Footprint",
-                        type="geojson",
-                        geojson=cmap_res.geojson,
-                        color="#f43f5e",
-                        opacity=0.65
-                    ))
-            else:
-                final_answer = vqa_ans
-                base_confidence = cvqa_res.confidence if cvqa_res else 0.86
-                conf_breakdown["vqa"] = base_confidence
 
         # Caption
         elif "rs_caption" in tool_results:

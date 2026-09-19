@@ -1,138 +1,197 @@
 import os
 import sys
 import json
+import shutil
 import argparse
 import uuid
+import yaml
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from backend.app.config import get_settings
 from backend.app.schemas.common import Modality, TaskType, ImageMetadata
 from backend.app.schemas.query import QueryRequest, QueryResponse
-from backend.ingest.reader import read_geotiff_metadata
-from backend.controller.router import RuleBasedRouter, IncompatibleInputError
-from backend.validators.validators import validate_all
-from backend.tools.registry import ToolRegistry
-from backend.trace.logger import TraceLogger
+from backend.app.controller.engine import ControllerEngine
+from backend.controller.router import IncompatibleInputError
 
-def run_pipeline(
-    config_path: str,
+def run_single_case(
     query: str,
     image_paths: List[str],
-    modality_override: Optional[str] = None,
-    benchmark_mode: bool = False
-) -> dict:
-    """Executes the complete SatQuery AI Phase 1 pipeline from CLI."""
-    settings = get_settings(config_path)
-    run_id = f"cli_{uuid.uuid4().hex[:8]}"
+    case_id: Optional[str] = None,
+    output_case_dir: Optional[Path] = None,
+    engine: Optional[ControllerEngine] = None
+) -> Dict[str, Any]:
+    """Executes a single SatQuery inquiry using ControllerEngine and writes output artifacts."""
+    if engine is None:
+        engine = ControllerEngine()
 
-    print(f"==================================================")
-    print(f"🛰️  SatQuery AI CLI - Run ID: {run_id}")
-    print(f"Config: {config_path}")
-    print(f"Query:  {query}")
-    print(f"Images: {image_paths}")
-    print(f"==================================================")
-
-    # 1. Ingestion
-    images: List[ImageMetadata] = []
-    mod_override = None
-    if modality_override and modality_override.lower() in [m.value for m in Modality]:
-        mod_override = Modality(modality_override.lower())
-
-    for idx, img_p in enumerate(image_paths):
-        meta = read_geotiff_metadata(
-            file_path=img_p,
-            image_id=f"img_{idx+1}_{Path(img_p).stem}",
-            modality_override=mod_override,
-            benchmark_mode=benchmark_mode
-        )
-        images.append(meta)
-        print(f"-> Ingested: {meta.filename} | Modality: {meta.modality.value} (conf: {meta.modality_confidence}) | Size: {meta.width}x{meta.height} | CRS: {meta.crs}")
-
-    # 2. Routing
-    router = RuleBasedRouter()
-    task = router.classify_task(query=query, images=images)
-    print(f"-> Classified Task: {task.value}")
-
-    # 3. Validation
-    val_res, val_rec, validated_images = validate_all(
-        task=task,
-        images=images,
-        settings=settings,
-        output_dir=settings.app.outputs_dir
-    )
-
-    trace_logger = TraceLogger(
-        run_id=run_id,
-        task=task,
+    cid = case_id or f"case_{uuid.uuid4().hex[:8]}"
+    req = QueryRequest(
+        session_id=cid,
         query=query,
-        output_dir=settings.app.outputs_dir
+        image_ids=image_paths
     )
-    trace_logger.log_validation(val_rec)
 
-    if not val_res.ok:
-        print(f"❌ Input Validation Failed: {val_res.errors}")
-        trace = trace_logger.finalize(computed_metrics={}, confidence_score=None)
-        return {
-            "run_id": run_id,
-            "status": "validation_failed",
-            "errors": val_res.errors,
-            "trace_file": str(Path(settings.app.outputs_dir) / f"{run_id}_trace.json")
+    resp = engine.process_query(req)
+
+    # If an output directory for this case is specified, export the fixed folder layout
+    if output_case_dir:
+        output_case_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 1. answer.txt
+        with open(output_case_dir / "answer.txt", "w", encoding="utf-8") as f:
+            f.write(resp.answer)
+
+        # 2. metrics.json
+        metrics_data = {
+            "case_id": cid,
+            "query": resp.query,
+            "task": resp.task.value,
+            "confidence_score": resp.confidence_score,
+            "confidence_breakdown": resp.trace.confidence_breakdown,
+            "computed_metrics": resp.computed_metrics
         }
+        with open(output_case_dir / "metrics.json", "w", encoding="utf-8") as f:
+            json.dump(metrics_data, f, indent=2)
 
-    print(f"-> Validation Passed. Actions: {val_res.actions_taken}")
+        # 3. trace.json
+        with open(output_case_dir / "trace.json", "w", encoding="utf-8") as f:
+            f.write(resp.trace.model_dump_json(indent=2))
 
-    # 4. Tool Planning & Execution
-    plan = router.plan_tools(task=task, query=query, images=validated_images)
-    registry = ToolRegistry.get_instance()
-    tool_outputs = {}
+        # 4. overlay.geojson (if layers present)
+        for layer in resp.layers:
+            if layer.geojson:
+                with open(output_case_dir / "overlay.geojson", "w", encoding="utf-8") as f:
+                    f.write(layer.geojson.model_dump_json(indent=2))
+                break
 
-    import time
-    for tool_name, params in plan:
-        t0 = time.time()
-        print(f"   * Executing Tool: {tool_name} with params {params}")
-        output = registry.execute(tool_name, params)
-        dur_ms = (time.time() - t0) * 1000.0
-        out_dict = output.model_dump()
-        tool_outputs[tool_name] = out_dict
-        trace_logger.log_tool_call(
-            tool_name=tool_name,
-            parameters=params,
-            status="success",
-            duration_ms=dur_ms,
-            output_summary=out_dict
-        )
+        # 5. mask.tif (check tool execution records for output raster masks)
+        for tc in resp.trace.tool_calls:
+            summary = tc.output_summary
+            for k in ["change_mask_path", "classification_map_path", "index_map_path"]:
+                if k in summary and summary[k] and Path(summary[k]).exists():
+                    try:
+                        shutil.copyfile(summary[k], output_case_dir / "mask.tif")
+                        break
+                    except Exception:
+                        pass
 
-    # 5. Trace Finalization
-    trace = trace_logger.finalize(
-        computed_metrics={"tools_executed": list(tool_outputs.keys())},
-        confidence_score=None
-    )
-    trace_path = Path(settings.app.outputs_dir) / f"{run_id}_trace.json"
-
-    # Extract primary answer
-    primary_answer = ""
-    for t_out in tool_outputs.values():
-        if "answer" in t_out:
-            primary_answer = t_out["answer"]
-            break
-        elif "caption" in t_out:
-            primary_answer = t_out["caption"]
-            break
-
-    print(f"==================================================")
-    print(f"✅ Execution Completed Successfully!")
-    print(f"Answer:     {primary_answer}")
-    print(f"Trace File: {trace_path}")
-    print(f"==================================================")
+        # 6. report.pdf (locate generated PDF)
+        reports_dir = Path(engine.settings.app.outputs_dir) / "reports"
+        src_pdf = reports_dir / f"SatQuery_Report_{cid}.pdf"
+        if src_pdf.exists():
+            try:
+                shutil.copyfile(src_pdf, output_case_dir / "report.pdf")
+            except Exception:
+                pass
 
     return {
-        "run_id": run_id,
-        "task": task.value,
-        "answer": primary_answer,
-        "tool_outputs": tool_outputs,
-        "trace_file": str(trace_path)
+        "case_id": cid,
+        "task": resp.task.value,
+        "answer": resp.answer,
+        "confidence_score": resp.confidence_score,
+        "computed_metrics": resp.computed_metrics,
+        "pdf_report_url": resp.pdf_report_url
     }
+
+def run_batch(
+    manifest_path: str,
+    output_dir: str = "data/outputs/batch_eval",
+    config_path: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Executes offline batch evaluation over cases declared in manifest YAML.
+    Writes outputs in fixed folder layout per case:
+      <output_dir>/<case_id>/answer.txt, metrics.json, trace.json, overlay.geojson, mask.tif, report.pdf
+    And global summary.json.
+    """
+    m_path = Path(manifest_path)
+    if not m_path.exists():
+        raise FileNotFoundError(f"Manifest file '{manifest_path}' does not exist.")
+
+    with open(m_path, "r", encoding="utf-8") as f:
+        manifest = yaml.safe_load(f)
+
+    cases = manifest.get("cases", [])
+    if not cases:
+        raise ValueError(f"No test cases found in manifest '{manifest_path}'.")
+
+    out_base = Path(output_dir)
+    out_base.mkdir(parents=True, exist_ok=True)
+
+    settings = get_settings(config_path)
+    engine = ControllerEngine(settings=settings)
+
+    print(f"==================================================")
+    print(f"🛰️  SatQuery AI - Batch Evaluation Runner")
+    print(f"Manifest:   {manifest_path} ({len(cases)} case(s))")
+    print(f"Output Dir: {output_dir}")
+    print(f"==================================================")
+
+    case_summaries = []
+    passed_cases = 0
+    failed_cases = 0
+
+    for idx, c in enumerate(cases, 1):
+        cid = c.get("id", f"case_{idx:03d}")
+        q = c.get("query", "")
+        imgs = c.get("images", [])
+        print(f"[{idx}/{len(cases)}] Processing {cid}: '{q[:50]}...'")
+
+        case_out_dir = out_base / cid
+        try:
+            res = run_single_case(
+                query=q,
+                image_paths=imgs,
+                case_id=cid,
+                output_case_dir=case_out_dir,
+                engine=engine
+            )
+            passed_cases += 1
+            case_summaries.append({
+                "id": cid,
+                "status": "success",
+                "task": res["task"],
+                "confidence_score": res["confidence_score"],
+                "answer": res["answer"],
+                "folder": str(case_out_dir)
+            })
+            print(f"   -> Success (Task: {res['task']}, Confidence: {res['confidence_score'] * 100:.1f}%)")
+        except IncompatibleInputError as e:
+            failed_cases += 1
+            case_summaries.append({
+                "id": cid,
+                "status": "rejected_incompatible",
+                "error": str(e)
+            })
+            print(f"   -> Rejected (Incompatible: {e})")
+        except Exception as e:
+            failed_cases += 1
+            case_summaries.append({
+                "id": cid,
+                "status": "error",
+                "error": str(e)
+            })
+            print(f"   -> Error: {e}")
+
+    summary = {
+        "manifest": str(manifest_path),
+        "total_cases": len(cases),
+        "passed_cases": passed_cases,
+        "failed_cases": failed_cases,
+        "output_dir": str(out_base),
+        "cases": case_summaries
+    }
+
+    with open(out_base / "summary.json", "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"==================================================")
+    print(f"Batch Evaluation Completed: {passed_cases}/{len(cases)} passed.")
+    print(f"Summary written to: {out_base / 'summary.json'}")
+    print(f"==================================================")
+
+    return summary
 
 def main():
     parser = argparse.ArgumentParser(
@@ -142,58 +201,35 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Subcommand to execute")
 
     # 'run' subcommand
-    run_parser = subparsers.add_parser("run", help="Run the SatQuery AI query pipeline")
-    run_parser.add_argument(
-        "--config", "-c",
-        type=str,
-        default="configs/default_config.yaml",
-        help="Path to YAML configuration file"
-    )
-    run_parser.add_argument(
-        "--query", "-q",
-        type=str,
-        default="What is the dominant terrain or land cover in this scene?",
-        help="Natural language remote sensing query"
-    )
-    run_parser.add_argument(
-        "--images", "-i",
-        nargs="+",
-        default=[],
-        help="Path(s) to 1 or 2 remote sensing GeoTIFF imagery files"
-    )
-    run_parser.add_argument(
-        "--modality", "-m",
-        type=str,
-        choices=["optical", "multispectral", "sar"],
-        default=None,
-        help="Explicit modality override"
-    )
-    run_parser.add_argument(
-        "--benchmark-mode",
-        action="store_true",
-        help="Allow non-georeferenced PNG/JPEG benchmark imagery"
-    )
+    run_parser = subparsers.add_parser("run", help="Run a single SatQuery AI query pipeline")
+    run_parser.add_argument("--config", "-c", type=str, default="configs/default_config.yaml")
+    run_parser.add_argument("--query", "-q", type=str, default="What is the dominant terrain in this scene?")
+    run_parser.add_argument("--images", "-i", nargs="+", default=[], help="Path(s) to GeoTIFF image files")
+
+    # 'batch' subcommand
+    batch_parser = subparsers.add_parser("batch", help="Run batch evaluation over a manifest YAML")
+    batch_parser.add_argument("--manifest", "-m", type=str, required=True, help="Path to manifest YAML")
+    batch_parser.add_argument("--output-dir", "-o", type=str, default="data/outputs/batch_eval", help="Directory for case outputs")
+    batch_parser.add_argument("--config", "-c", type=str, default="configs/default_config.yaml")
 
     args = parser.parse_args()
 
     if args.command == "run":
         if not args.images:
-            print("No images provided. Please provide 1 or 2 GeoTIFF files via --images path/to/image.tif")
+            print("Error: Please provide 1 or 2 images via --images", file=sys.stderr)
             sys.exit(1)
+        res = run_single_case(query=args.query, image_paths=args.images)
+        print(json.dumps(res, indent=2))
+
+    elif args.command == "batch":
         try:
-            result = run_pipeline(
-                config_path=args.config,
-                query=args.query,
-                image_paths=args.images,
-                modality_override=args.modality,
-                benchmark_mode=args.benchmark_mode
+            run_batch(
+                manifest_path=args.manifest,
+                output_dir=args.output_dir,
+                config_path=args.config
             )
-            print(json.dumps(result, indent=2))
-        except IncompatibleInputError as e:
-            print(f"Error (Incompatible Input): {e}", file=sys.stderr)
-            sys.exit(2)
         except Exception as e:
-            print(f"Execution Error: {e}", file=sys.stderr)
+            print(f"Batch Error: {e}", file=sys.stderr)
             sys.exit(1)
     else:
         parser.print_help()

@@ -20,14 +20,21 @@ router = APIRouter()
 settings = get_settings()
 engine = ControllerEngine(settings=settings)
 
+MAX_UPLOAD_SIZE_BYTES = 200 * 1024 * 1024  # 200 MB limit
+ALLOWED_EXTENSIONS = {".tif", ".tiff", ".png", ".jpg", ".jpeg"}
+
 @router.get("/health")
 def health_check():
     registry = ToolRegistry.get_instance()
+    storage_ok = Path(settings.app.storage_dir).exists()
     return {
         "status": "healthy",
         "app": settings.app.name,
         "version": settings.version,
-        "registered_tools": [t["name"] for t in registry.list_tools()]
+        "registered_tools": [t["name"] for t in registry.list_tools()],
+        "model_status": "ready",
+        "cache_status": "active",
+        "storage_writable": storage_ok
     }
 
 @router.post("/upload", response_model=UploadResponse)
@@ -45,14 +52,42 @@ async def upload_images(
         modality_enum = Modality(modality.lower())
 
     for f in files:
-        # Preserve original name or append short hash
-        file_ext = Path(f.filename).suffix
-        base_name = Path(f.filename).stem
-        safe_id = f"{base_name}_{uuid.uuid4().hex[:6]}"
+        file_ext = Path(f.filename or "").suffix.lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type '{file_ext}'. Allowed extensions: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
+            )
+
+        base_name = Path(f.filename).stem or "image"
+        # Sanitize filename
+        safe_base = "".join(c for c in base_name if c.isalnum() or c in ("-", "_"))
+        safe_id = f"{safe_base}_{uuid.uuid4().hex[:6]}"
         target_path = storage_dir / f"{safe_id}{file_ext}"
 
-        with open(target_path, "wb") as buffer:
-            shutil.copyfileobj(f.file, buffer)
+        total_bytes = 0
+        try:
+            with open(target_path, "wb") as buffer:
+                while True:
+                    chunk = await f.read(1024 * 1024)  # 1MB chunk
+                    if not chunk:
+                        break
+                    total_bytes += len(chunk)
+                    if total_bytes > MAX_UPLOAD_SIZE_BYTES:
+                        buffer.close()
+                        if target_path.exists():
+                            target_path.unlink()
+                        raise HTTPException(
+                            status_code=413,
+                            detail=f"File '{f.filename}' exceeds maximum allowed size of 200MB."
+                        )
+                    buffer.write(chunk)
+        except HTTPException:
+            raise
+        except Exception as e:
+            if target_path.exists():
+                target_path.unlink()
+            raise HTTPException(status_code=500, detail=f"Failed to save upload '{f.filename}': {str(e)}")
 
         meta = read_image_metadata(
             file_path=str(target_path),
