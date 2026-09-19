@@ -33,9 +33,11 @@ storage_dir = Path(settings.app.storage_dir)
 storage_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/static/uploads", StaticFiles(directory=str(storage_dir)), name="uploads")
 
-# Include API routers
+# Include API routers (available both at /api and root)
 app.include_router(api_router, prefix="/api")
 app.include_router(batch_router, prefix="/api")
+app.include_router(api_router)
+app.include_router(batch_router)
 
 @app.get("/")
 def root():

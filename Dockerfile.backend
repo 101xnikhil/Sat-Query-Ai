@@ -31,7 +31,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy workspace code
 COPY backend/ /app/backend/
+COPY configs/ /app/configs/
 COPY config/ /app/config/
+COPY satquery/ /app/satquery/
+COPY tests/ /app/tests/
 COPY pytest.ini /app/
 
 EXPOSE 8000

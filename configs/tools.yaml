@@ -1,0 +1,54 @@
+# Tool Registry and Permitted Parameters Whitelist
+registry:
+  rs_vqa:
+    description: "Answers natural language questions regarding remote sensing imagery."
+    implementation: "stub"
+    allowed_parameters:
+      - "query"
+      - "image_path"
+      - "confidence_threshold"
+  rs_caption:
+    description: "Generates descriptive captions and domain tags for a remote sensing scene."
+    implementation: "stub"
+    allowed_parameters:
+      - "image_path"
+      - "max_length"
+      - "style"
+  rs_grounding:
+    description: "Locates and grounds specified features/objects into GeoJSON bounding boxes or polygons."
+    implementation: "stub"
+    allowed_parameters:
+      - "query"
+      - "image_path"
+      - "box_threshold"
+      - "text_threshold"
+  change_vqa:
+    description: "Answers bi-temporal comparative questions between two acquisition dates."
+    implementation: "stub"
+    allowed_parameters:
+      - "query"
+      - "image_t1_path"
+      - "image_t2_path"
+  change_map:
+    description: "Generates pixel-level change mask and calculates empirical area changed and direction."
+    implementation: "stub"
+    allowed_parameters:
+      - "image_t1_path"
+      - "image_t2_path"
+      - "threshold"
+      - "min_area_m2"
+  optical_sar_fusion:
+    description: "Two-stream optical and SAR cross-modal segmentation for water bodies and built-up areas."
+    implementation: "stub"
+    allowed_parameters:
+      - "optical_path"
+      - "sar_path"
+      - "target_classes"
+      - "confidence_threshold"
+  spectral_index:
+    description: "Computes spectral indices (NDVI, NDWI, NDBI) with graceful degradation."
+    implementation: "stub"
+    allowed_parameters:
+      - "image_path"
+      - "index_type"
+      - "threshold"

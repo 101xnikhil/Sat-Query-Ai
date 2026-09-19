@@ -1,0 +1,8 @@
+# Paths Configuration
+storage_dir: "data/uploads"
+outputs_dir: "data/outputs"
+reports_dir: "data/outputs/reports"
+datasets_dir: "data/datasets"
+models_dir: "models"
+checkpoints_dir: "models/checkpoints"
+traces_dir: "data/outputs"

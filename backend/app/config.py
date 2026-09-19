@@ -65,9 +65,11 @@ def get_settings(config_path: str = None) -> Settings:
         else:
             # Look relative to project root
             base_dir = Path(__file__).resolve().parent.parent.parent
-            default_path = base_dir / "config" / "default_config.yaml"
-            if default_path.exists():
-                config_path = str(default_path)
+            for folder in ["configs", "config"]:
+                default_path = base_dir / folder / "default_config.yaml"
+                if default_path.exists():
+                    config_path = str(default_path)
+                    break
 
     data: Dict[str, Any] = {}
     if config_path and os.path.exists(config_path):

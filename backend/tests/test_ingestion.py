@@ -21,7 +21,12 @@ def test_read_sar_metadata(sar_geotiff):
     assert meta.band_count == 1
 
 def test_read_png_metadata(benchmark_png):
-    meta = read_image_metadata(benchmark_png)
+    # Reject when benchmark_mode is False
+    with pytest.raises(ValueError, match="benchmark_mode"):
+        read_image_metadata(benchmark_png, benchmark_mode=False)
+
+    # Accept when benchmark_mode is True
+    meta = read_image_metadata(benchmark_png, benchmark_mode=True)
     assert meta.format == RasterFormat.PNG
     assert meta.width == 128
     assert meta.height == 128

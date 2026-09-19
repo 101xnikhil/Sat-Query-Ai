@@ -1,0 +1,14 @@
+# Models Configuration
+models:
+  base_vlm:
+    name: "Qwen/Qwen2-VL-7B-Instruct"
+    device: "cpu"
+    lora_checkpoint_dir: "models/checkpoints/vqa_lora"
+    max_tokens: 512
+  datasets:
+    primary: "BigEarthNet"
+    additional:
+      - "RSVQA"
+      - "VRSBench"
+      - "CDVQA"
+    splits_dir: "data/datasets"

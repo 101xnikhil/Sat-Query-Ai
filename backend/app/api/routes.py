@@ -12,6 +12,7 @@ from ..schemas.trace import ExecutionTrace
 from ..config import get_settings
 from ..ingestion.reader import read_image_metadata, inspect_modality
 from ..controller.engine import ControllerEngine
+from ..controller.router import IncompatibleInputError
 from ..trace.logger import load_trace
 from ..tools.registry import ToolRegistry
 
@@ -71,16 +72,18 @@ def run_query(request: QueryRequest):
     try:
         response = engine.process_query(request)
         return response
+    except (ValueError, IncompatibleInputError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query execution failed: {str(e)}")
 
-@router.get("/trace/{session_id}", response_model=ExecutionTrace)
-def get_session_trace(session_id: str):
-    trace = load_trace(session_id, output_dir=settings.app.outputs_dir)
+@router.get("/trace/{run_id}", response_model=ExecutionTrace)
+def get_session_trace(run_id: str):
+    trace = load_trace(run_id, output_dir=settings.app.outputs_dir)
     if not trace:
-        raise HTTPException(status_code=404, detail=f"Trace for session '{session_id}' not found.")
+        raise HTTPException(status_code=404, detail=f"Trace for run/session '{run_id}' not found.")
     return trace
 
 @router.get("/outputs/{filename}")

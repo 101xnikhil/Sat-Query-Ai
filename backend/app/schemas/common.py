@@ -45,6 +45,8 @@ class ImageMetadata(BaseModel):
     nodata: Optional[float] = None
     acquisition_date: Optional[str] = None
     is_georeferenced: bool = True
+    transform: Optional[List[float]] = None
+    modality_confidence: Optional[float] = 1.0
     sar_metadata: Optional[Dict[str, Any]] = None
 
 class GeoJSONGeometry(BaseModel):

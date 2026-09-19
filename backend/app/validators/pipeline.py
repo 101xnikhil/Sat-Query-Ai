@@ -75,6 +75,7 @@ def validate_task_inputs(
                     # Swap so images are strictly chronological (t1 earlier, t2 later)
                     processed_images = [images[1].model_copy(), images[0].model_copy()]
                     record.warnings.append("Images reordered chronologically: t1 is earlier than t2.")
+                    record.actions_taken.append("Reordered bi-temporal images chronologically: image 2 set as T1, image 1 set as T2.")
             except Exception:
                 record.warnings.append("Could not parse acquisition dates for temporal ordering.")
 
@@ -109,6 +110,7 @@ def validate_task_inputs(
                 output_path=reprojected_path
             )
             record.reprojections.append(reproj_info)
+            record.actions_taken.append(f"Auto-reprojected {img2.image_id} to common grid matching {img1.image_id} ({img1.crs}).")
             # Update metadata of reprojected img2
             updated_meta = read_image_metadata(
                 file_path=reprojected_path,
@@ -131,6 +133,7 @@ def validate_task_inputs(
                 epsilon=settings.validation.sar.epsilon
             )
             record.sar_preprocessing.append(sar_info)
+            record.actions_taken.append(f"Preprocessed SAR image {img.image_id}: linear to dB conversion and Lee speckle filtering.")
             updated_meta = read_image_metadata(
                 file_path=preprocessed_path,
                 image_id=f"preprocessed_{img.image_id}",

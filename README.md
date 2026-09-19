@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB.svg)](https://react.dev/)
 [![MapLibre GL](https://img.shields.io/badge/MapLibre_GL-6.0-blue.svg)](https://maplibre.org/)
-[![Pytest](https://img.shields.io/badge/Tests-52%2F52_Passing-success.svg)](https://pytest.org/)
+[![Pytest](https://img.shields.io/badge/Tests-104%2F104_Passing-success.svg)](https://pytest.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](LICENSE)
 
 ---
@@ -152,7 +152,23 @@ Web Application will be accessible at: `http://localhost:3000`
 
 ---
 
-### 2. Running with Docker Compose
+### 2. SatQuery AI CLI Execution
+
+Run the standalone CLI pipeline directly from your terminal:
+```bash
+# Run with a single GeoTIFF
+python -m satquery run --config configs/default_config.yaml --query "What is the dominant land cover?" --images path/to/image.tif
+
+# Run bi-temporal change analysis with two GeoTIFFs
+python -m satquery run --config configs/default_config.yaml --query "What changed between the two dates?" --images path/to/t1.tif path/to/t2.tif
+
+# Run optical-SAR fusion with explicit modality
+python -m satquery run --config configs/default_config.yaml --query "Fuse optical and SAR imagery" --images path/to/opt.tif path/to/sar.tif
+```
+
+---
+
+### 3. Running with Docker Compose
 
 Deploy the complete stack (backend + frontend) in isolated containers:
 ```bash
@@ -166,10 +182,10 @@ docker compose up --build
 
 ## 6. Running Automated Tests & Benchmarks
 
-### Backend Test Suite (52 / 52 Passing in 0.98s)
+### Full Automated Test Suite (104 / 104 Passing in < 1.0s)
 ```bash
 source .venv/bin/activate
-PYTHONPATH=. pytest backend/tests -v
+pytest -v
 ```
 
 ### Reproducing Benchmark Evaluations

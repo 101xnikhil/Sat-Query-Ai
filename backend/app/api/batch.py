@@ -20,6 +20,7 @@ class BatchEvaluationResponse(BaseModel):
     failed: int
     results: List[Dict[str, Any]]
 
+@router.post("", response_model=BatchEvaluationResponse)
 @router.post("/evaluate", response_model=BatchEvaluationResponse)
 def run_batch_evaluation(batch_req: BatchEvaluationRequest):
     results = []

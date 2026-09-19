@@ -12,6 +12,7 @@ class RSVQAOutput(BaseModel):
     answer: str
     confidence: float
     evidence_summary: str
+    mode: str = "stub"
 
 # RSCaption
 class RSCaptionInput(BaseModel):
@@ -23,6 +24,7 @@ class RSCaptionOutput(BaseModel):
     caption: str
     tags: List[str] = Field(default_factory=list)
     confidence: float
+    mode: str = "stub"
 
 # RSGrounding
 class RSGroundingInput(BaseModel):
@@ -36,6 +38,7 @@ class RSGroundingOutput(BaseModel):
     detected_count: int
     labels: List[str] = Field(default_factory=list)
     confidences: List[float] = Field(default_factory=list)
+    mode: str = "stub"
 
 # ChangeVQA
 class ChangeVQAInput(BaseModel):
@@ -47,6 +50,7 @@ class ChangeVQAOutput(BaseModel):
     answer: str
     confidence: float
     change_summary: str
+    mode: str = "stub"
 
 # ChangeMap
 class ChangeMapInput(BaseModel):
@@ -61,6 +65,7 @@ class ChangeMapOutput(BaseModel):
     percentage_changed: float
     direction_of_change: str
     geojson: Optional[GeoJSONFeatureCollection] = None
+    mode: str = "stub"
 
 # OpticalSARFusion
 class OpticalSARFusionInput(BaseModel):
@@ -76,6 +81,7 @@ class OpticalSARFusionOutput(BaseModel):
     water_percentage: float
     built_up_percentage: float
     geojson: Optional[GeoJSONFeatureCollection] = None
+    mode: str = "stub"
 
 # SpectralIndex
 class SpectralIndexInput(BaseModel):
@@ -90,3 +96,4 @@ class SpectralIndexOutput(BaseModel):
     positive_area_km2: float
     positive_percentage: float
     geojson: Optional[GeoJSONFeatureCollection] = None
+    mode: str = "stub"

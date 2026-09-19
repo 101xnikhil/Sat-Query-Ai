@@ -1,4 +1,5 @@
-from .router import RuleBasedRouter
+from .router import RuleBasedRouter, IncompatibleInputError
 from .engine import ControllerEngine
 
-__all__ = ["RuleBasedRouter", "ControllerEngine"]
+__all__ = ["RuleBasedRouter", "ControllerEngine", "IncompatibleInputError"]
+

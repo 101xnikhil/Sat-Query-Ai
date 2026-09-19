@@ -8,9 +8,10 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./configs:/app/configs
       - ./config:/app/config
     environment:
-      - SATQUERY_CONFIG_PATH=/app/config/default_config.yaml
+      - SATQUERY_CONFIG_PATH=/app/configs/default_config.yaml
       - PYTHONPATH=/app
 
   frontend:
